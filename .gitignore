@@ -216,3 +216,23 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Nintendo ROMs
+roms/**/*.gba
+roms/**/*.gb
+roms/**/*.gbc
+roms/**/*.nds
+
+# mGBA executable and downloaded files
+/emulators/mgba/executable/**
+!/emulators/mgba/executable/.gitkeep
+emulators/visualboyadvance/executable/VisualBoyAdvance.exe
+
+# Screenshots
+output/screenshots/**
+
+# Exclude Individual Files
+all_files.txt
+files_export.bat
+directory_structure.txt
+
