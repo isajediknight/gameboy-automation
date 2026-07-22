@@ -10,10 +10,6 @@ import bootstrap  # noqa: E402
 
 from gameboy_automation.config import ProjectPaths  # noqa: E402
 from gameboy_automation.emulators.mgba import MGBAEmulator  # noqa: E402
-from gameboy_automation.utils.windows import (  # noqa: E402
-    capture_window,
-    find_window_by_process_id,
-)
 
 
 def main() -> None:
@@ -35,23 +31,7 @@ def main() -> None:
 
         print(f"Started mGBA ({emulator.pid})")
 
-        window_handle = None
-
-        for _ in range(20):
-
-            window_handle = find_window_by_process_id(
-                emulator.pid,
-            )
-
-            if window_handle is not None:
-                break
-
-            time.sleep(0.5)
-
-        if window_handle is None:
-            raise RuntimeError(
-                "Could not locate mGBA window."
-            )
+        emulator.wait_for_window()
 
         #
         # Give Pokémon a couple seconds to finish loading.
@@ -59,7 +39,7 @@ def main() -> None:
 
         time.sleep(2)
 
-        image = capture_window(window_handle)
+        image = emulator.screenshot()
 
         output_file = (
             ProjectPaths.SCREENSHOTS
@@ -69,7 +49,7 @@ def main() -> None:
         image.save(output_file)
 
         print()
-        print(f"Screenshot saved to:")
+        print("Screenshot saved to:")
         print(output_file)
 
         #

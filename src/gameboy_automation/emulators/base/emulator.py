@@ -2,7 +2,10 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from subprocess import Popen, TimeoutExpired
 from typing import Optional
+import subprocess
+import time
 
+from .button import Button
 
 class Emulator(ABC):
     """Base interface for supported Game Boy emulators."""
@@ -22,6 +25,16 @@ class Emulator(ABC):
                 Optional path to the ROM that should be opened.
         """
 
+    @abstractmethod
+    def key_down(self, button: Button) -> None:
+        """Press and hold an emulator button."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def key_up(self, button: Button) -> None:
+        """Release an emulator button."""
+        raise NotImplementedError
+
     def is_running(self) -> bool:
         """Return True when the emulator process is running."""
         return self.process is not None and self.process.poll() is None
@@ -34,6 +47,51 @@ class Emulator(ABC):
 
         assert self.process is not None
         return self.process.pid
+
+    def press(
+        self,
+        button: Button,
+        duration_seconds: float = 0.1,
+    ) -> None:
+        """
+        Press and release an emulator button.
+
+        Args:
+            button:
+                Button to press.
+            duration_seconds:
+                How long to hold the button before releasing it.
+        """
+        if duration_seconds < 0:
+            raise ValueError(
+                "duration_seconds cannot be negative."
+            )
+
+        self.key_down(button)
+
+        try:
+            time.sleep(duration_seconds)
+        finally:
+            self.key_up(button)
+
+    def hold(
+        self,
+        button: Button,
+        duration_seconds: float,
+    ) -> None:
+        """
+        Hold an emulator button for a fixed duration.
+
+        Args:
+            button:
+                Button to hold.
+            duration_seconds:
+                How long to hold the button.
+        """
+        self.press(
+            button,
+            duration_seconds=duration_seconds,
+        )
 
     def close(self, timeout_seconds: float = 10.0) -> None:
         """

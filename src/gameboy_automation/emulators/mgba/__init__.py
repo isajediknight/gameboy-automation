@@ -1,3 +1,5 @@
 from .adapter import MGBAEmulator
 
-__all__ = ["MGBAEmulator"]
+__all__ = [
+    "MGBAEmulator",
+]

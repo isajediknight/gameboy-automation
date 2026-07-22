@@ -56,6 +56,19 @@ user32.GetWindowRect.argtypes = [
 ]
 user32.GetWindowRect.restype = wintypes.BOOL
 
+WM_KEYDOWN = 0x0100
+WM_KEYUP = 0x0101
+
+user32.PostMessageW.argtypes = [
+    wintypes.HWND,
+    wintypes.UINT,
+    wintypes.WPARAM,
+    wintypes.LPARAM,
+]
+
+user32.PostMessageW.restype = wintypes.BOOL
+
+
 def get_window_title(window_handle: int) -> str:
     """Return the title of a Windows window."""
 
@@ -125,6 +138,7 @@ def find_window_by_process_id(process_id: int) -> int | None:
 
     return matching_window
 
+
 def get_window_bounds(
     window_handle: int,
 ) -> tuple[int, int, int, int]:
@@ -158,6 +172,7 @@ def get_window_bounds(
         rectangle.bottom,
     )
 
+
 def capture_window(
     window_handle: int,
 ) -> Image.Image:
@@ -184,3 +199,61 @@ def capture_window(
             bottom,
         )
     )
+
+
+def send_key_down(
+    window_handle: int,
+    virtual_key_code: int,
+) -> None:
+    """
+    Send a key-down event to a Windows window.
+
+    Args:
+        window_handle:
+            Native Windows window handle.
+
+        virtual_key_code:
+            Windows virtual-key code.
+
+    Raises:
+        OSError:
+            If Windows fails to post the message.
+    """
+    result = user32.PostMessageW(
+        window_handle,
+        WM_KEYDOWN,
+        virtual_key_code,
+        0,
+    )
+
+    if not result:
+        raise ctypes.WinError(ctypes.get_last_error())
+
+
+def send_key_up(
+    window_handle: int,
+    virtual_key_code: int,
+) -> None:
+    """
+    Send a key-up event to a Windows window.
+
+    Args:
+        window_handle:
+            Native Windows window handle.
+
+        virtual_key_code:
+            Windows virtual-key code.
+
+    Raises:
+        OSError:
+            If Windows fails to post the message.
+    """
+    result = user32.PostMessageW(
+        window_handle,
+        WM_KEYUP,
+        virtual_key_code,
+        0,
+    )
+
+    if not result:
+        raise ctypes.WinError(ctypes.get_last_error())
