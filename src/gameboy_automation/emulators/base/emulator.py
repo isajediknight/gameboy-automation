@@ -5,14 +5,20 @@ from typing import Optional
 import subprocess
 import time
 from gameboy_automation.vision import Screen
+from gameboy_automation.emulators.base.config import EmulatorConfig
 
 from .button import Button
 
 class Emulator(ABC):
     """Base interface for supported Game Boy emulators."""
 
-    def __init__(self, executable_path: Path) -> None:
+    def __init__(
+        self,
+        executable_path: Path,
+        config: EmulatorConfig | None = None,
+    ) -> None:
         self.executable_path = Path(executable_path)
+        self.config = config
         self.process: Optional[Popen] = None
         self.rom_path: Optional[Path] = None
 

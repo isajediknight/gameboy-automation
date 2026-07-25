@@ -241,3 +241,8 @@ roms/pokemon/ultraviolet/ultravioletv122-0.png
 roms/pokemon/ultraviolet/ultravioletv122-1.png
 roms/pokemon/ultraviolet/ultravioletv122.sav
 
+# Runtime artifacts
+runtime/**
+!runtime/.gitkeep
+!runtime/test/
+!runtime/test/.gitkeep

@@ -19,12 +19,21 @@ from gameboy_automation.utils.windows import (
 )
 
 from gameboy_automation.vision import Screen
+from gameboy_automation.emulators.base.config import EmulatorConfig
+
 
 class MGBAEmulator(Emulator):
     """mGBA emulator process adapter."""
 
-    def __init__(self, executable_path: Path) -> None:
-        super().__init__(executable_path)
+    def __init__(
+        self,
+        executable_path: Path,
+        config: EmulatorConfig | None = None,
+    ) -> None:
+        super().__init__(
+            executable_path=executable_path,
+            config=config,
+        )
 
         self._window_handle: int | None = None
 
@@ -44,6 +53,11 @@ class MGBAEmulator(Emulator):
         if self.is_running():
             raise RuntimeError("mGBA is already running.")
 
+        effective_rom_path = rom_path
+
+        if effective_rom_path is None and self.config is not None:
+            effective_rom_path = self.config.rom
+
         if not self.executable_path.is_file():
             raise FileNotFoundError(
                 f"mGBA executable not found: {self.executable_path}"
@@ -54,8 +68,8 @@ class MGBAEmulator(Emulator):
         self.rom_path = None
         self._window_handle = None
 
-        if rom_path is not None:
-            resolved_rom_path = Path(rom_path).resolve()
+        if effective_rom_path is not None:
+            resolved_rom_path = Path(effective_rom_path).resolve()
 
             if not resolved_rom_path.is_file():
                 raise FileNotFoundError(
