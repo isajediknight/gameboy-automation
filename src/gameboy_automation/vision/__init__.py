@@ -1,5 +1,6 @@
-from .screen import Screen
+from .screen import Pixel, Screen
 
 __all__ = [
+    "Pixel",
     "Screen",
 ]

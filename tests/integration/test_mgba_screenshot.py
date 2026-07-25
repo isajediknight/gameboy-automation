@@ -10,13 +10,18 @@ import bootstrap  # noqa: E402
 
 from gameboy_automation.config import ProjectPaths  # noqa: E402
 from gameboy_automation.emulators.mgba import MGBAEmulator  # noqa: E402
+from gameboy_automation.vision import Screen  # noqa: E402
 
 
-def main() -> None:
-
+def test_mgba_screenshot() -> None:
     ProjectPaths.SCREENSHOTS.mkdir(
         parents=True,
         exist_ok=True,
+    )
+
+    output_file = (
+        ProjectPaths.SCREENSHOTS
+        / "test_mgba_screenshot.png"
     )
 
     emulator = MGBAEmulator(
@@ -24,7 +29,6 @@ def main() -> None:
     )
 
     try:
-
         emulator.launch(
             ProjectPaths.ULTRAVIOLET_ROM,
         )
@@ -33,35 +37,22 @@ def main() -> None:
 
         emulator.wait_for_window()
 
-        #
-        # Give Pokémon a couple seconds to finish loading.
-        #
-
         time.sleep(2)
 
-        image = emulator.screenshot()
+        screen = emulator.screenshot()
 
-        output_file = (
-            ProjectPaths.SCREENSHOTS
-            / "ultraviolet_startup.png"
-        )
+        assert isinstance(screen, Screen)
+        assert screen.width > 0
+        assert screen.height > 0
 
-        image.save(output_file)
+        screen.save(output_file)
 
-        print()
-        print("Screenshot saved to:")
-        print(output_file)
+        assert output_file.exists()
 
-        #
-        # Keep emulator open briefly so you can compare.
-        #
+        print(f"Screenshot size: {screen.size}")
+        print(f"Screenshot saved to: {output_file}")
 
         time.sleep(3)
 
     finally:
-
         emulator.close()
-
-
-if __name__ == "__main__":
-    main()

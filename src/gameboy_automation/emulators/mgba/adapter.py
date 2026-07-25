@@ -18,6 +18,8 @@ from gameboy_automation.utils.windows import (
     send_key_up,
 )
 
+from gameboy_automation.vision import Screen
+
 class MGBAEmulator(Emulator):
     """mGBA emulator process adapter."""
 
@@ -121,28 +123,21 @@ class MGBAEmulator(Emulator):
         )
 
 
-    def screenshot(self) -> Image.Image:
+    def screenshot(self) -> Screen:
         """
-        Capture the current mGBA window.
+        Capture the current emulator display.
 
         Returns:
-            A Pillow image containing the emulator window.
-
-        Raises:
-            RuntimeError:
-                If mGBA is not running.
+            A Screen object containing the current emulator image.
         """
-        if not self.is_running():
-            raise RuntimeError("mGBA is not running.")
-
         if self._window_handle is None:
-            self.wait_for_window()
+            raise RuntimeError(
+                "The emulator window has not been located."
+            )
 
-        assert self._window_handle is not None
+        image = capture_window(self._window_handle)
 
-        return capture_window(
-            self._window_handle,
-        )
+        return Screen(image)
 
     def close(self, timeout_seconds: float = 10.0) -> None:
         """Close mGBA and clear cached window state."""

@@ -4,6 +4,7 @@ from subprocess import Popen, TimeoutExpired
 from typing import Optional
 import subprocess
 import time
+from gameboy_automation.vision import Screen
 
 from .button import Button
 
@@ -24,6 +25,16 @@ class Emulator(ABC):
             rom_path:
                 Optional path to the ROM that should be opened.
         """
+
+    @abstractmethod
+    def screenshot(self) -> Screen:
+        """
+        Capture the current emulator screen.
+
+        Returns:
+            A Screen object representing the current display.
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def key_down(self, button: Button) -> None:
