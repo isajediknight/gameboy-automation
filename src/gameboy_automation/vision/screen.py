@@ -3,8 +3,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from PIL import Image
 from typing import NamedTuple
-from .template_matching import find_template
+from .template_matching import (
+    TemplateMatch,
+    find_template,
+)
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from .region import Region
 
 class Pixel(NamedTuple):
     """RGB value of a single pixel."""
@@ -120,13 +126,28 @@ class Screen:
         )
 
 
-    def find_template(self) -> None:
+    def find_template(
+        self,
+        template_path: str | Path,
+        confidence: float = 0.95,
+    ) -> TemplateMatch:
         """
-        Find a template within this screen.
+        Search this screen for a template image.
 
-        Placeholder implementation.
+        Args:
+            template_path:
+                Path to the template image.
+            confidence:
+                Minimum confidence required for a match.
+
+        Returns:
+            Information about the best template match.
         """
-        return find_template(self)
+        return find_template(
+            screen=self,
+            template_path=template_path,
+            confidence=confidence,
+        )
 
     def save(self, path: str | Path) -> None:
         """Save the captured screen to disk."""
@@ -171,3 +192,22 @@ class Screen:
         )
 
         return Screen(cropped_image)
+
+    def region(
+        self,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+    ) -> "Region":
+        """
+        Returns a Region representing part of this screen.
+        """
+        from .region import Region
+        return Region(
+            screen=self,
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+        )

@@ -1,0 +1,20 @@
+from pathlib import Path
+
+
+DIALOGUE_BOX_X = 0
+DIALOGUE_BOX_Y = 96
+DIALOGUE_BOX_WIDTH = 240
+DIALOGUE_BOX_HEIGHT = 64
+
+ASSETS_DIRECTORY = Path(__file__).parent / "assets"
+
+TEMPLATES_DIRECTORY = ASSETS_DIRECTORY / "templates"
+
+DIALOGUE_TEMPLATES_DIRECTORY = (
+    TEMPLATES_DIRECTORY / "dialogue"
+)
+
+CONTINUE_ARROW_TEMPLATE = (
+    DIALOGUE_TEMPLATES_DIRECTORY
+    / "continue_arrow.png"
+)

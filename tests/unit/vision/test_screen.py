@@ -128,3 +128,46 @@ def test_pixel_matches() -> None:
         Pixel(120, 150, 200),
         tolerance=2,
     )
+
+def test_find_template_locates_template(tmp_path: Path) -> None:
+    screen_image = Image.new(
+        mode="RGB",
+        size=(20, 20),
+        color=(255, 255, 255),
+    )
+
+    template_image = Image.new(
+        mode="RGB",
+        size=(4, 4),
+        color=(0, 0, 0),
+    )
+
+    template_image.putpixel((0, 0), (255, 0, 0))
+    template_image.putpixel((3, 0), (0, 255, 0))
+    template_image.putpixel((0, 3), (0, 0, 255))
+    template_image.putpixel((3, 3), (255, 255, 0))
+
+    expected_x = 7
+    expected_y = 9
+
+    screen_image.paste(
+        template_image,
+        (expected_x, expected_y),
+    )
+
+    template_path = tmp_path / "template.png"
+    template_image.save(template_path)
+
+    screen = Screen(screen_image)
+
+    match = screen.find_template(
+        template_path=template_path,
+        confidence=0.99,
+    )
+
+    assert match.found is True
+    assert match.confidence >= 0.99
+    assert match.x == expected_x
+    assert match.y == expected_y
+    assert match.width == 4
+    assert match.height == 4

@@ -24,7 +24,7 @@ class TemplateMatch:
 
 
 def find_template(
-    screen: Screen,
+    screen: "Screen",
     template_path: str | Path,
     confidence: float = 0.95,
 ) -> TemplateMatch:
@@ -41,15 +41,6 @@ def find_template(
 
     Returns:
         The strongest template match found on the screen.
-
-    Raises:
-        ValueError:
-            If confidence is outside the range 0.0 through 1.0, or if
-            the template is larger than the screen.
-        FileNotFoundError:
-            If the template image does not exist.
-        RuntimeError:
-            If OpenCV cannot load the template image.
     """
     if not 0.0 <= confidence <= 1.0:
         raise ValueError(
