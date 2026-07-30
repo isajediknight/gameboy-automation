@@ -3,7 +3,7 @@ import bootstrap
 from pathlib import Path
 from unittest.mock import Mock
 
-from gameboy_automation.emulators.base.config import EmulatorConfig
+from gameboy_automation.emulators.base.config import LaunchConfiguration
 from gameboy_automation.emulators.mgba.adapter import MGBAEmulator
 
 
@@ -17,7 +17,7 @@ def test_launch_uses_rom_from_config_when_rom_is_not_provided(
     executable_path.touch()
     rom_path.touch()
 
-    config = EmulatorConfig(
+    config = LaunchConfiguration(
         executable=executable_path,
         rom=rom_path,
     )

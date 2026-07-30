@@ -2,12 +2,12 @@ import bootstrap
 
 from pathlib import Path
 
-from gameboy_automation.emulators.base.config import EmulatorConfig
+from gameboy_automation.emulators.base.config import LaunchConfiguration
 def test_emulator_config_stores_required_paths() -> None:
     executable = Path("emulators/mgba/mgba.exe")
     rom = Path("roms/pokemon.gba")
 
-    config = EmulatorConfig(
+    config = LaunchConfiguration(
         executable=executable,
         rom=rom,
     )
@@ -17,7 +17,7 @@ def test_emulator_config_stores_required_paths() -> None:
 
 
 def test_emulator_config_working_directory_defaults_to_none() -> None:
-    config = EmulatorConfig(
+    config = LaunchConfiguration(
         executable=Path("emulators/mgba/mgba.exe"),
         rom=Path("roms/pokemon.gba"),
     )
@@ -28,7 +28,7 @@ def test_emulator_config_working_directory_defaults_to_none() -> None:
 def test_emulator_config_stores_working_directory() -> None:
     working_directory = Path("emulators/mgba")
 
-    config = EmulatorConfig(
+    config = LaunchConfiguration(
         executable=Path("emulators/mgba/mgba.exe"),
         rom=Path("roms/pokemon.gba"),
         working_directory=working_directory,

@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 @dataclass(frozen=True)
-class EmulatorConfig:
+class LaunchConfiguration:
     """
     Filesystem configuration required to launch an emulator.
     """

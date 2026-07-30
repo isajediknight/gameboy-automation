@@ -19,7 +19,7 @@ from gameboy_automation.utils.windows import (
 )
 
 from gameboy_automation.vision import Screen
-from gameboy_automation.emulators.base.config import EmulatorConfig
+from gameboy_automation.emulators.base.config import LaunchConfiguration
 
 
 class MGBAEmulator(Emulator):
@@ -28,7 +28,7 @@ class MGBAEmulator(Emulator):
     def __init__(
         self,
         executable_path: Path,
-        config: EmulatorConfig | None = None,
+        config: LaunchConfiguration | None = None,
     ) -> None:
         super().__init__(
             executable_path=executable_path,

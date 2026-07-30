@@ -5,7 +5,7 @@ from typing import Optional
 import subprocess
 import time
 from gameboy_automation.vision import Screen
-from gameboy_automation.emulators.base.config import EmulatorConfig
+from gameboy_automation.emulators.base.config import LaunchConfiguration
 
 from .button import Button
 
@@ -15,7 +15,7 @@ class Emulator(ABC):
     def __init__(
         self,
         executable_path: Path,
-        config: EmulatorConfig | None = None,
+        config: LaunchConfiguration | None = None,
     ) -> None:
         self.executable_path = Path(executable_path)
         self.config = config
