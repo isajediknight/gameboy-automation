@@ -4,14 +4,14 @@ from gameboy_automation.emulators.base.config import LaunchConfiguration
 from gameboy_automation.runtime.run_config import RunConfig
 
 
-def create_emulator_config(
+def create_launch_configuration(
     *,
     executable: Path,
     rom: Path,
     run_config: RunConfig,
 ) -> LaunchConfiguration:
     """
-    Create emulator configuration for a specific runtime workspace.
+    Create launch configuration for a specific runtime workspace.
     """
     return LaunchConfiguration(
         executable=Path(executable),
