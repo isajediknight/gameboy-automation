@@ -8,7 +8,7 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.title_screen import (
     TitleScreen,
 )
 from gameboy_automation.services.wait import WaitTimeoutError
-
+from gameboy_automation.emulators import Button
 
 def test_is_visible_returns_true_when_template_is_found():
     match = Mock()
@@ -95,3 +95,16 @@ def test_wait_until_visible_times_out_when_title_screen_is_not_visible():
             timeout_seconds=0.01,
             poll_interval_seconds=0.0,
         )
+
+def test_press_start_presses_start_button():
+    session = Mock()
+
+    title_screen = TitleScreen(
+        session=session,
+    )
+
+    title_screen.press_start()
+
+    session.press.assert_called_once_with(
+        Button.START,
+    )

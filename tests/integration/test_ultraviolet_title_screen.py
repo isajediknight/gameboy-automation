@@ -76,7 +76,12 @@ def main() -> None:
 
         print("Ultra Violet title screen detected!")
 
-        time.sleep(2)
+        print("Pressing START through TitleScreen...")
+        title_screen.press_start()
+
+        time.sleep(3)
+
+        print("START pressed successfully.")
 
     finally:
         emulator.close()

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from gameboy_automation.runtime.session import Session
 from gameboy_automation.services.wait import wait_until
-
+from gameboy_automation.emulators import Button
 
 TITLE_SCREEN_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
@@ -44,4 +44,12 @@ class TitleScreen:
             timeout_seconds=timeout_seconds,
             poll_interval_seconds=poll_interval_seconds,
             description="Pokémon Ultra Violet title screen",
+        )
+
+    def press_start(self) -> None:
+        """
+        Press START on the title screen.
+        """
+        self.session.press(
+            Button.START,
         )
