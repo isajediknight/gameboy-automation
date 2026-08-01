@@ -14,7 +14,15 @@ from gameboy_automation.emulators.mgba import MGBAEmulator  # noqa: E402
 from gameboy_automation.games.pokemon.ultraviolet.screens.title_screen import (  # noqa: E402
     TitleScreen,
 )
-
+from gameboy_automation.games.pokemon.ultraviolet.screens.load_menu import (  # noqa: E402
+    LoadMenu,
+)
+from gameboy_automation.games.pokemon.ultraviolet.screens.quest_recap import (  # noqa: E402
+    QuestRecap,
+)
+from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (  # noqa: E402
+    PauseMenu,
+)
 
 def main() -> None:
     emulator = MGBAEmulator(
@@ -43,7 +51,7 @@ def main() -> None:
             time.sleep(1)
 
         print("Waiting for title screen to settle...")
-        time.sleep(5)
+        time.sleep(2)
 
         #
         # TitleScreen currently expects a Session-like object with
@@ -79,9 +87,107 @@ def main() -> None:
         print("Pressing START through TitleScreen...")
         title_screen.press_start()
 
-        time.sleep(3)
+        load_menu = LoadMenu(
+            session=emulator,
+        )
 
-        print("START pressed successfully.")
+        print("Waiting for Ultra Violet load menu...")
+
+        load_menu.wait_until_visible(
+            timeout_seconds=10.0,
+            poll_interval_seconds=0.1,
+        )
+
+        print("Ultra Violet load menu detected!")
+
+        time.sleep(1)
+
+        print("Continuing Luke's saved game...")
+
+        before_continue = emulator.screenshot()
+
+        before_continue.save(
+            repo_root
+            / "output"
+            / "screenshots"
+            / "before_continue_game.png"
+        )
+
+        load_menu.continue_game()
+
+        quest_recap = QuestRecap(
+            session=emulator,
+        )
+
+        time.sleep(2)
+
+        load_menu.continue_game()
+
+        time.sleep(1)
+
+        after_continue = emulator.screenshot()
+
+        after_continue.save(
+            repo_root
+            / "output"
+            / "screenshots"
+            / "after_continue_game.png"
+        )
+
+        print("Waiting for quest recap...")
+
+        quest_recap.wait_until_visible(
+            timeout_seconds=10.0,
+            poll_interval_seconds=0.1,
+        )
+
+        time.sleep(1)
+
+        print("Advancing quest recap...")
+        quest_recap.advance()
+
+        time.sleep(2)
+
+        print("Advancing quest recap...")
+        quest_recap.advance()
+
+        time.sleep(2)
+
+        print("Advancing quest recap...")
+        quest_recap.advance()
+
+        time.sleep(2)
+
+        print("Advancing quest recap...")
+        quest_recap.advance()
+
+        time.sleep(2)
+
+        print("Advancing quest recap...")
+        quest_recap.advance()
+
+        time.sleep(2)
+
+        print("Pressing START from overworld...")
+
+        emulator.press(
+            Button.START,
+        )
+
+        pause_menu = PauseMenu(
+            session=emulator,
+        )
+
+        print("Waiting for pause menu...")
+
+        pause_menu.wait_until_visible(
+            timeout_seconds=10.0,
+            poll_interval_seconds=0.1,
+        )
+
+        print("Pause menu detected!")
+
+        time.sleep(2)
 
     finally:
         emulator.close()
