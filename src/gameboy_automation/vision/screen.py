@@ -193,6 +193,26 @@ class Screen:
 
         return Screen(cropped_image)
 
+    def resize(
+        self,
+        width: int,
+        height: int,
+    ) -> Screen:
+        """
+        Return a resized copy of this screen.
+        """
+        if width <= 0 or height <= 0:
+            raise ValueError(
+                "Resize dimensions must be greater than zero."
+            )
+
+        resized_image = self.image.resize(
+            (width, height),
+            resample=Image.Resampling.NEAREST,
+        )
+
+        return Screen(resized_image)
+
     def region(
         self,
         x: int,

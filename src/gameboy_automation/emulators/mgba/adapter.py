@@ -12,7 +12,7 @@ from gameboy_automation.emulators.mgba.keys import (
     BUTTON_TO_VIRTUAL_KEY,
 )
 from gameboy_automation.utils.windows import (
-    capture_window,
+    capture_client_area,
     find_window_by_process_id,
     send_key_down,
     send_key_up,
@@ -20,7 +20,9 @@ from gameboy_automation.utils.windows import (
 
 from gameboy_automation.vision import Screen
 from gameboy_automation.emulators.base.config import LaunchConfiguration
-
+from gameboy_automation.emulators.mgba.screenshots import (
+    extract_game_viewport,
+)
 
 class MGBAEmulator(Emulator):
     """mGBA emulator process adapter."""
@@ -149,9 +151,15 @@ class MGBAEmulator(Emulator):
                 "The emulator window has not been located."
             )
 
-        image = capture_window(self._window_handle)
+        image = capture_client_area(self._window_handle)
+        game_viewport = extract_game_viewport(image)
 
-        return Screen(image)
+        screen = Screen(game_viewport)
+
+        return screen.resize(
+            width=240,
+            height=160,
+        )
 
     def close(self, timeout_seconds: float = 10.0) -> None:
         """Close mGBA and clear cached window state."""

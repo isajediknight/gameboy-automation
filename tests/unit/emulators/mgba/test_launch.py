@@ -1,7 +1,10 @@
 import bootstrap
 
+from PIL import Image
+
+from gameboy_automation.vision.screen import Screen
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from gameboy_automation.emulators.base.config import LaunchConfiguration
 from gameboy_automation.emulators.mgba.adapter import MGBAEmulator
@@ -50,3 +53,38 @@ def test_launch_uses_rom_from_config_when_rom_is_not_provided(
         ],
         cwd=str(executable_path.parent),
     )
+
+def test_screenshot_extracts_game_viewport():
+    client_image = Image.new(
+        mode="RGB",
+        size=(480, 340),
+    )
+
+    viewport_image = Image.new(
+        mode="RGB",
+        size=(480, 320),
+    )
+
+    emulator = MGBAEmulator(
+        executable_path=Path("mgba.exe"),
+    )
+
+    emulator._window_handle = 123
+
+    with (
+        patch(
+            "gameboy_automation.emulators.mgba.adapter.capture_client_area",
+            return_value=client_image,
+        ) as capture_mock,
+        patch(
+            "gameboy_automation.emulators.mgba.adapter.extract_game_viewport",
+            return_value=viewport_image,
+        ) as extract_mock,
+    ):
+        screen = emulator.screenshot()
+
+    assert isinstance(screen, Screen)
+    assert screen.size == (240, 160)
+
+    capture_mock.assert_called_once_with(123)
+    extract_mock.assert_called_once_with(client_image)

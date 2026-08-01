@@ -56,6 +56,18 @@ user32.GetWindowRect.argtypes = [
 ]
 user32.GetWindowRect.restype = wintypes.BOOL
 
+user32.GetClientRect.argtypes = [
+    wintypes.HWND,
+    ctypes.POINTER(RECT),
+]
+user32.GetClientRect.restype = wintypes.BOOL
+
+user32.ClientToScreen.argtypes = [
+    wintypes.HWND,
+    ctypes.POINTER(wintypes.POINT),
+]
+user32.ClientToScreen.restype = wintypes.BOOL
+
 WM_KEYDOWN = 0x0100
 WM_KEYUP = 0x0101
 
@@ -172,6 +184,55 @@ def get_window_bounds(
         rectangle.bottom,
     )
 
+def get_client_bounds(
+    window_handle: int,
+) -> tuple[int, int, int, int]:
+    """
+    Return the client-area bounds in screen coordinates.
+
+    Returns:
+        A tuple containing:
+
+        left, top, right, bottom
+    """
+    rectangle = RECT()
+
+    success = user32.GetClientRect(
+        window_handle,
+        ctypes.byref(rectangle),
+    )
+
+    if not success:
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    top_left = wintypes.POINT(
+        rectangle.left,
+        rectangle.top,
+    )
+
+    bottom_right = wintypes.POINT(
+        rectangle.right,
+        rectangle.bottom,
+    )
+
+    if not user32.ClientToScreen(
+        window_handle,
+        ctypes.byref(top_left),
+    ):
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    if not user32.ClientToScreen(
+        window_handle,
+        ctypes.byref(bottom_right),
+    ):
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    return (
+        top_left.x,
+        top_left.y,
+        bottom_right.x,
+        bottom_right.y,
+    )
 
 def capture_window(
     window_handle: int,
@@ -200,6 +261,31 @@ def capture_window(
         )
     )
 
+def capture_client_area(
+    window_handle: int,
+) -> Image.Image:
+    """
+    Capture the client area of a Windows window.
+
+    Args:
+        window_handle:
+            Native Windows window handle.
+
+    Returns:
+        A Pillow image containing only the client area.
+    """
+    left, top, right, bottom = get_client_bounds(
+        window_handle,
+    )
+
+    return ImageGrab.grab(
+        bbox=(
+            left,
+            top,
+            right,
+            bottom,
+        )
+    )
 
 def send_key_down(
     window_handle: int,
