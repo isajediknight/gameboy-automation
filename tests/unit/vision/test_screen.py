@@ -171,3 +171,20 @@ def test_find_template_locates_template(tmp_path: Path) -> None:
     assert match.y == expected_y
     assert match.width == 4
     assert match.height == 4
+
+def test_resize_returns_screen_with_requested_size():
+    image = Image.new(
+        "RGB",
+        (480, 320),
+        color=(255, 0, 0),
+    )
+
+    screen = Screen(image)
+
+    resized = screen.resize(
+        width=240,
+        height=160,
+    )
+
+    assert isinstance(resized, Screen)
+    assert resized.size == (240, 160)

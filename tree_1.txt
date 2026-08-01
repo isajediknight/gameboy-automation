@@ -1,0 +1,9 @@
+Folder PATH listing for volume Big Data
+Volume serial number is 94A9-0F0A
+D:\GITHUB_REPOS\GAMEBOY-AUTOMATION\SRC\GAMEBOY_AUTOMATION\GAMES
++---pokemon
+    +---emerald
+    +---firered
+    +---leafgreen
+    +---mechanics
+    +---ultraviolet

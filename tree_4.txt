@@ -1,0 +1,6 @@
+D:\GitHub_Repos\gameboy-automation\output\screenshots\test_mgba_screenshot.png
+D:\GitHub_Repos\gameboy-automation\output\screenshots\ultraviolet_startup.png
+D:\GitHub_Repos\gameboy-automation\roms\pokemon\ultraviolet\ultravioletv122-0.png
+D:\GitHub_Repos\gameboy-automation\roms\pokemon\ultraviolet\ultravioletv122-1.png
+D:\GitHub_Repos\gameboy-automation\src\gameboy_automation\pokemon\assets\reference\dialogue_open.png
+D:\GitHub_Repos\gameboy-automation\src\gameboy_automation\pokemon\assets\templates\dialogue\continue_arrow.png

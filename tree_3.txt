@@ -1,0 +1,9 @@
+Folder PATH listing for volume Big Data
+Volume serial number is 94A9-0F0A
+D:\GITHUB_REPOS\GAMEBOY-AUTOMATION\SRC\GAMEBOY_AUTOMATION\GAMES\POKEMON\ULTRAVIOLET
++---screens
+    ¦   title_screen.py
+    ¦   
+    +---__pycache__
+            title_screen.cpython-312.pyc
+            
