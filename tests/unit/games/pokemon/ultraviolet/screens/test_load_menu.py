@@ -68,12 +68,15 @@ def test_wait_until_visible_waits_for_load_menu(monkeypatch):
         poll_interval_seconds=0.25,
     )
 
-    wait_until_mock.assert_called_once_with(
-        load_menu.is_visible,
-        timeout_seconds=5.0,
-        poll_interval_seconds=0.25,
-        description="Pokémon Ultra Violet load menu",
-    )
+    wait_until_mock.assert_called_once()
+
+    _, kwargs = wait_until_mock.call_args
+
+    assert kwargs == {
+        "timeout_seconds": 5.0,
+        "poll_interval_seconds": 0.25,
+        "description": "Pokémon Ultra Violet load menu",
+    }
 
 def test_continue_game_presses_a_button():
     session = Mock()
@@ -86,4 +89,5 @@ def test_continue_game_presses_a_button():
 
     session.press.assert_called_once_with(
         Button.A,
+        duration_seconds=0.5,
     )

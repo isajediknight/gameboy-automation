@@ -11,18 +11,13 @@ import bootstrap  # noqa: E402
 from gameboy_automation.config import ProjectPaths  # noqa: E402
 from gameboy_automation.emulators import Button  # noqa: E402
 from gameboy_automation.emulators.mgba import MGBAEmulator  # noqa: E402
-from gameboy_automation.games.pokemon.ultraviolet.screens.title_screen import (  # noqa: E402
-    TitleScreen,
-)
-from gameboy_automation.games.pokemon.ultraviolet.screens.load_menu import (  # noqa: E402
-    LoadMenu,
-)
-from gameboy_automation.games.pokemon.ultraviolet.screens.quest_recap import (  # noqa: E402
-    QuestRecap,
-)
 from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (  # noqa: E402
     PauseMenu,
 )
+from gameboy_automation.games.pokemon.ultraviolet.game import (  # noqa: E402
+    UltraVioletGame,
+)
+
 
 def main() -> None:
     emulator = MGBAEmulator(
@@ -53,120 +48,22 @@ def main() -> None:
         print("Waiting for title screen to settle...")
         time.sleep(2)
 
-        #
-        # TitleScreen currently expects a Session-like object with
-        # screenshot(). MGBAEmulator already provides that interface.
-        #
+        print("Loading saved game through UltraVioletGame...")
 
-        title_screen = TitleScreen(
+        game = UltraVioletGame(
             session=emulator,
         )
 
-        screen = emulator.screenshot()
+        quest_recap = game.load_saved_game()
 
-        diagnostic_path = (
-            repo_root
-            / "output"
-            / "screenshots"
-            / "ultraviolet_title_screen_live.png"
-        )
+        print("Saved game loaded to quest recap!")
 
-        screen.save(diagnostic_path)
+        for _ in range(5):
+            print("Advancing quest recap...")
 
-        print(f"Saved live title screen screenshot: {diagnostic_path}")
+            quest_recap.advance()
 
-        print("Waiting for Ultra Violet title screen...")
-
-        title_screen.wait_until_visible(
-            timeout_seconds=10.0,
-            poll_interval_seconds=0.1,
-        )
-
-        print("Ultra Violet title screen detected!")
-
-        print("Pressing START through TitleScreen...")
-        title_screen.press_start()
-
-        load_menu = LoadMenu(
-            session=emulator,
-        )
-
-        print("Waiting for Ultra Violet load menu...")
-
-        load_menu.wait_until_visible(
-            timeout_seconds=10.0,
-            poll_interval_seconds=0.1,
-        )
-
-        print("Ultra Violet load menu detected!")
-
-        time.sleep(1)
-
-        print("Continuing Luke's saved game...")
-
-        before_continue = emulator.screenshot()
-
-        before_continue.save(
-            repo_root
-            / "output"
-            / "screenshots"
-            / "before_continue_game.png"
-        )
-
-        load_menu.continue_game()
-
-        quest_recap = QuestRecap(
-            session=emulator,
-        )
-
-        time.sleep(2)
-
-        load_menu.continue_game()
-
-        time.sleep(1)
-
-        after_continue = emulator.screenshot()
-
-        after_continue.save(
-            repo_root
-            / "output"
-            / "screenshots"
-            / "after_continue_game.png"
-        )
-
-        print("Waiting for quest recap...")
-
-        quest_recap.wait_until_visible(
-            timeout_seconds=10.0,
-            poll_interval_seconds=0.1,
-        )
-
-        time.sleep(1)
-
-        print("Advancing quest recap...")
-        quest_recap.advance()
-
-        time.sleep(2)
-
-        print("Advancing quest recap...")
-        quest_recap.advance()
-
-        time.sleep(2)
-
-        print("Advancing quest recap...")
-        quest_recap.advance()
-
-        time.sleep(2)
-
-        print("Advancing quest recap...")
-        quest_recap.advance()
-
-        time.sleep(2)
-
-        print("Advancing quest recap...")
-        quest_recap.advance()
-
-        time.sleep(2)
+            time.sleep(2)
 
         print("Pressing START from overworld...")
 

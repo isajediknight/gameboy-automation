@@ -67,12 +67,15 @@ def test_wait_until_visible_waits_for_quest_recap(monkeypatch):
         poll_interval_seconds=0.25,
     )
 
-    wait_until_mock.assert_called_once_with(
-        quest_recap.is_visible,
-        timeout_seconds=5.0,
-        poll_interval_seconds=0.25,
-        description="Pokémon Ultra Violet quest recap",
-    )
+    wait_until_mock.assert_called_once()
+
+    _, kwargs = wait_until_mock.call_args
+
+    assert kwargs == {
+        "timeout_seconds": 5.0,
+        "poll_interval_seconds": 0.25,
+        "description": "Pokémon Ultra Violet quest recap",
+    }
 
 def test_advance_presses_a_button():
     session = Mock()

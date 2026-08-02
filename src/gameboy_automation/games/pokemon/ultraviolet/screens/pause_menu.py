@@ -39,7 +39,7 @@ class PauseMenu:
     ) -> None:
         """Wait until the pause menu becomes visible."""
         wait_until(
-            self.is_visible,
+            lambda: True if self.is_visible() else None,
             timeout_seconds=timeout_seconds,
             poll_interval_seconds=poll_interval_seconds,
             description="Pokémon Ultra Violet pause menu",

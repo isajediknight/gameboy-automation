@@ -40,7 +40,7 @@ class LoadMenu:
     ) -> None:
         """Wait until the load menu becomes visible."""
         wait_until(
-            self.is_visible,
+            lambda: True if self.is_visible() else None,
             timeout_seconds=timeout_seconds,
             poll_interval_seconds=poll_interval_seconds,
             description="Pokémon Ultra Violet load menu",
@@ -52,6 +52,7 @@ class LoadMenu:
         """
         self.session.press(
             Button.A,
+            duration_seconds=0.5,
         )
 
     def test_continue_game_presses_a_button():

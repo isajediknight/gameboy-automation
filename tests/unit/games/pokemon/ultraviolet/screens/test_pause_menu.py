@@ -68,9 +68,12 @@ def test_wait_until_visible_waits_for_pause_menu(monkeypatch):
         poll_interval_seconds=0.25,
     )
 
-    wait_until_mock.assert_called_once_with(
-        pause_menu.is_visible,
-        timeout_seconds=5.0,
-        poll_interval_seconds=0.25,
-        description="Pokémon Ultra Violet pause menu",
-    )
+    wait_until_mock.assert_called_once()
+
+    _, kwargs = wait_until_mock.call_args
+
+    assert kwargs == {
+        "timeout_seconds": 5.0,
+        "poll_interval_seconds": 0.25,
+        "description": "Pokémon Ultra Violet pause menu",
+    }
