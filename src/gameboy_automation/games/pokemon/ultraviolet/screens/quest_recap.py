@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 
 from gameboy_automation.runtime.session import Session
 from gameboy_automation.services.wait import wait_until
@@ -51,3 +52,23 @@ class QuestRecap:
         self.session.press(
             Button.A,
         )
+
+    def skip(
+        self,
+        max_advances: int = 10,
+        transition_seconds: float = 2.0,
+    ) -> None:
+        """Advance through the quest recap until it is no longer visible."""
+        for _ in range(max_advances):
+            if not self.is_visible():
+                return
+
+            self.advance()
+
+            time.sleep(transition_seconds)
+
+        if self.is_visible():
+            raise RuntimeError(
+                f"Quest recap remained visible after "
+                f"{max_advances} advances."
+            )

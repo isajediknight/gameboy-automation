@@ -21,12 +21,9 @@ class UltraVioletGame:
     ) -> None:
         self.session = session
 
-    def load_saved_game(self) -> QuestRecap:
+    def load_saved_game(self) -> None:
         """
-        Navigate from the title screen into the saved-game quest recap.
-
-        Returns:
-            The active QuestRecap once the saved game has loaded.
+        Navigate from the title screen into the loaded saved game.
         """
         title_screen = TitleScreen(
             session=self.session,
@@ -50,5 +47,4 @@ class UltraVioletGame:
         )
 
         quest_recap.wait_until_visible()
-
-        return quest_recap
+        quest_recap.skip()

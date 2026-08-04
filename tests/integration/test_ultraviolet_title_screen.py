@@ -11,11 +11,15 @@ import bootstrap  # noqa: E402
 from gameboy_automation.config import ProjectPaths  # noqa: E402
 from gameboy_automation.emulators import Button  # noqa: E402
 from gameboy_automation.emulators.mgba import MGBAEmulator  # noqa: E402
-from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (  # noqa: E402
-    PauseMenu,
-)
 from gameboy_automation.games.pokemon.ultraviolet.game import (  # noqa: E402
     UltraVioletGame,
+)
+from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (  # noqa: E402
+    PauseMenu,
+    PauseMenuSelection,
+)
+from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (  # noqa: E402
+    PartyScreen,
 )
 
 
@@ -54,35 +58,67 @@ def main() -> None:
             session=emulator,
         )
 
-        quest_recap = game.load_saved_game()
+        game.load_saved_game()
 
-        print("Saved game loaded to quest recap!")
-
-        for _ in range(5):
-            print("Advancing quest recap...")
-
-            quest_recap.advance()
-
-            time.sleep(2)
-
-        print("Pressing START from overworld...")
-
-        emulator.press(
-            Button.START,
-        )
+        print("Saved game loaded!")
 
         pause_menu = PauseMenu(
             session=emulator,
         )
 
-        print("Waiting for pause menu...")
+        print("Opening pause menu...")
 
-        pause_menu.wait_until_visible(
-            timeout_seconds=10.0,
-            poll_interval_seconds=0.1,
+        pause_menu.open()
+
+        print("Pause menu opened!")
+
+        current_selection = pause_menu.selected_item()
+
+        print(f"Current pause menu selection: {current_selection.name}")
+
+        print("Selecting POKEMON...")
+
+        print("Opening Pokémon party screen...")
+
+        party_screen = pause_menu.open_party()
+
+        print("Party screen detected!")
+
+        try:
+            selected_slot = party_screen.selected_slot()
+
+            print(f"Selected party slot: {selected_slot.name}")
+
+        except Exception as exc:
+            print(f"selected_slot() failed: {exc}")
+
+            print("Leaving emulator open for inspection...")
+
+            time.sleep(10)
+
+            raise
+
+        emulator.press(
+            Button.DOWN,
         )
 
-        print("Pause menu detected!")
+        time.sleep(2)
+
+
+        try:
+            selected_slot = party_screen.selected_slot()
+
+            print(f"Selected party slot after DOWN: {selected_slot.name}")
+
+        except Exception as exc:
+            print(f"selected_slot() after DOWN failed: {exc}")
+
+            print("Leaving emulator open for inspection...")
+
+            time.sleep(10)
+
+            raise
+
 
         time.sleep(2)
 

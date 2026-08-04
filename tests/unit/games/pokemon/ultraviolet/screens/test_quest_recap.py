@@ -89,3 +89,40 @@ def test_advance_presses_a_button():
     session.press.assert_called_once_with(
         Button.A,
     )
+
+def test_skip_advances_until_quest_recap_is_not_visible(monkeypatch):
+    quest_recap = QuestRecap(
+        session=Mock(),
+    )
+
+    visibility = iter(
+        [
+            True,
+            True,
+            True,
+            False,
+        ]
+    )
+
+    monkeypatch.setattr(
+        quest_recap,
+        "is_visible",
+        lambda: next(visibility),
+    )
+
+    advance_mock = Mock()
+
+    monkeypatch.setattr(
+        quest_recap,
+        "advance",
+        advance_mock,
+    )
+
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.quest_recap.time.sleep",
+        Mock(),
+    )
+
+    quest_recap.skip()
+
+    assert advance_mock.call_count == 3

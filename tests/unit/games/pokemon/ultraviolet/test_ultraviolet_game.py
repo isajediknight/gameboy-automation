@@ -7,7 +7,7 @@ from gameboy_automation.games.pokemon.ultraviolet.game import (
 )
 
 
-def test_load_saved_game_navigates_to_quest_recap():
+def test_load_saved_game_navigates_through_quest_recap():
     session = Mock()
 
     title_screen = Mock()
@@ -31,8 +31,11 @@ def test_load_saved_game_navigates_to_quest_recap():
             "gameboy_automation.games.pokemon.ultraviolet.game.QuestRecap",
             return_value=quest_recap,
         ),
+        patch(
+            "gameboy_automation.games.pokemon.ultraviolet.game.time.sleep",
+        ),
     ):
-        result = game.load_saved_game()
+        game.load_saved_game()
 
     title_screen.wait_until_visible.assert_called_once_with()
     title_screen.press_start.assert_called_once_with()
@@ -41,5 +44,4 @@ def test_load_saved_game_navigates_to_quest_recap():
     load_menu.continue_game.assert_called_once_with()
 
     quest_recap.wait_until_visible.assert_called_once_with()
-
-    assert result is quest_recap
+    quest_recap.skip.assert_called_once_with()
