@@ -16,10 +16,9 @@ from gameboy_automation.games.pokemon.ultraviolet.game import (  # noqa: E402
 )
 from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (  # noqa: E402
     PauseMenu,
-    PauseMenuSelection,
 )
 from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (  # noqa: E402
-    PartyScreen,
+    PartySlot,
 )
 
 
@@ -72,53 +71,41 @@ def main() -> None:
 
         print("Pause menu opened!")
 
-        current_selection = pause_menu.selected_item()
-
-        print(f"Current pause menu selection: {current_selection.name}")
-
-        print("Selecting POKEMON...")
-
         print("Opening Pokémon party screen...")
 
         party_screen = pause_menu.open_party()
 
         print("Party screen detected!")
 
-        try:
+        expected_slots = [
+            PartySlot.SLOT_1,
+            PartySlot.SLOT_2,
+            PartySlot.SLOT_3,
+            PartySlot.SLOT_4,
+            PartySlot.SLOT_5,
+            PartySlot.SLOT_6,
+        ]
+
+        for index, expected_slot in enumerate(expected_slots):
             selected_slot = party_screen.selected_slot()
 
-            print(f"Selected party slot: {selected_slot.name}")
+            print(
+                f"Expected {expected_slot.name}, "
+                f"detected {selected_slot.name}"
+            )
 
-        except Exception as exc:
-            print(f"selected_slot() failed: {exc}")
+            assert selected_slot is expected_slot
 
-            print("Leaving emulator open for inspection...")
+            if expected_slot is not PartySlot.SLOT_6:
+                print("Pressing DOWN...")
 
-            time.sleep(10)
+                emulator.press(
+                    Button.DOWN,
+                )
 
-            raise
+                time.sleep(1)
 
-        emulator.press(
-            Button.DOWN,
-        )
-
-        time.sleep(2)
-
-
-        try:
-            selected_slot = party_screen.selected_slot()
-
-            print(f"Selected party slot after DOWN: {selected_slot.name}")
-
-        except Exception as exc:
-            print(f"selected_slot() after DOWN failed: {exc}")
-
-            print("Leaving emulator open for inspection...")
-
-            time.sleep(10)
-
-            raise
-
+        print("All six party slots detected successfully!")
 
         time.sleep(2)
 

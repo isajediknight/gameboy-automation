@@ -85,8 +85,8 @@ def test_selected_slot_returns_slot_1():
 
     screen.pixel.return_value = Mock(
         red=255,
-        green=255,
-        blue=255,
+        green=115,
+        blue=49,
     )
 
     session.screenshot.return_value = screen
@@ -103,8 +103,8 @@ def test_selected_slot_returns_slot_2():
     screen = Mock()
 
     screen.pixel.side_effect = [
-        Mock(red=0, green=0, blue=0),
-        Mock(red=255, green=255, blue=255),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=255, green=115, blue=49),
     ]
 
     session.screenshot.return_value = screen
@@ -114,3 +114,84 @@ def test_selected_slot_returns_slot_2():
     )
 
     assert party_screen.selected_slot() is PartySlot.SLOT_2
+
+def test_selected_slot_returns_slot_3():
+    session = Mock()
+    screen = Mock()
+
+    screen.pixel.side_effect = [
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=255, green=115, blue=49),
+    ]
+
+    session.screenshot.return_value = screen
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    assert party_screen.selected_slot() is PartySlot.SLOT_3
+
+
+def test_selected_slot_returns_slot_4():
+    session = Mock()
+    screen = Mock()
+
+    screen.pixel.side_effect = [
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=255, green=115, blue=49),
+    ]
+
+    session.screenshot.return_value = screen
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    assert party_screen.selected_slot() is PartySlot.SLOT_4
+
+
+def test_selected_slot_returns_slot_5():
+    session = Mock()
+    screen = Mock()
+
+    screen.pixel.side_effect = [
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=255, green=115, blue=49),
+    ]
+
+    session.screenshot.return_value = screen
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    assert party_screen.selected_slot() is PartySlot.SLOT_5
+
+
+def test_selected_slot_returns_slot_6():
+    session = Mock()
+    screen = Mock()
+
+    screen.pixel.side_effect = [
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=74, green=74, blue=99),
+        Mock(red=255, green=115, blue=49),
+    ]
+
+    session.screenshot.return_value = screen
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    assert party_screen.selected_slot() is PartySlot.SLOT_6
