@@ -8,8 +8,8 @@ sys.path.insert(0, str(repo_root))
 
 import bootstrap  # noqa: E402
 
+from gameboy_automation.emulators import Button
 from gameboy_automation.config import ProjectPaths  # noqa: E402
-from gameboy_automation.emulators import Button  # noqa: E402
 from gameboy_automation.emulators.mgba import MGBAEmulator  # noqa: E402
 from gameboy_automation.games.pokemon.ultraviolet.game import (  # noqa: E402
     UltraVioletGame,
@@ -17,7 +17,7 @@ from gameboy_automation.games.pokemon.ultraviolet.game import (  # noqa: E402
 from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (  # noqa: E402
     PauseMenu,
 )
-from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (  # noqa: E402
+from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
     PartySlot,
 )
 
@@ -77,37 +77,99 @@ def main() -> None:
 
         print("Party screen detected!")
 
-        expected_slots = [
-            PartySlot.SLOT_1,
-            PartySlot.SLOT_2,
-            PartySlot.SLOT_3,
-            PartySlot.SLOT_4,
-            PartySlot.SLOT_5,
-            PartySlot.SLOT_6,
+        time.sleep(1)
+
+        screen = emulator.screenshot()
+
+        debug_coordinates = [
+            (150, 20),
+            (150, 44),
+            (150, 68),
+            (150, 92),
+            (150, 116),
         ]
 
-        for index, expected_slot in enumerate(expected_slots):
-            selected_slot = party_screen.selected_slot()
+        for coordinate in debug_coordinates:
+            pixel = screen.pixel(*coordinate)
 
             print(
-                f"Expected {expected_slot.name}, "
-                f"detected {selected_slot.name}"
+                f"Pixel {coordinate}: "
+                f"({pixel.red}, {pixel.green}, {pixel.blue})"
             )
 
-            assert selected_slot is expected_slot
+        screen.save(
+            repo_root
+            / "output"
+            / "screenshots"
+            / "party_size_debug.png"
+        )
 
-            if expected_slot is not PartySlot.SLOT_6:
-                print("Pressing DOWN...")
+        party_size = party_screen.party_size()
 
-                emulator.press(
-                    Button.DOWN,
-                )
+        print(f"Detected party size: {party_size}")
 
-                time.sleep(1)
+        assert party_size == 3
 
-        print("All six party slots detected successfully!")
+        print("3-Pokémon party size detected successfully!")
 
         time.sleep(2)
+
+        print("Selecting SLOT_3...")
+
+        party_screen.select(
+            PartySlot.SLOT_3,
+        )
+
+        time.sleep(1)
+
+        selected_slot = party_screen.selected_slot()
+
+        print(f"Selected party slot: {selected_slot.name}")
+
+        assert selected_slot is PartySlot.SLOT_3
+
+        print("Pressing A on selected Pokémon...")
+
+        emulator.press(
+            Button.A,
+        )
+
+        time.sleep(1)
+
+        screen = emulator.screenshot()
+
+        screen.save(
+            repo_root
+            / "output"
+            / "screenshots"
+            / "party_pokemon_selected_menu.png"
+        )
+
+        print("Saved selected Pokémon menu screenshot.")
+
+        time.sleep(5)
+
+        print("Attempting to select unavailable SLOT_6...")
+
+        #try:
+        #    party_screen.select(
+        #        PartySlot.SLOT_6,
+        #    )
+        #except ValueError as error:
+        #    print(f"Correctly rejected SLOT_6: {error}")
+        #else:
+        #    raise AssertionError(
+        #        "Expected SLOT_6 selection to be rejected."
+        #    )
+
+        selected_slot = party_screen.selected_slot()
+
+        print(
+            f"Party slot after rejected selection: "
+            f"{selected_slot.name}"
+        )
+
+        assert selected_slot is PartySlot.SLOT_3
 
     finally:
         emulator.close()

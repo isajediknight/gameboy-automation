@@ -1,9 +1,10 @@
 from enum import Enum
 from pathlib import Path
+import time
 
 from gameboy_automation.runtime.session import Session
 from gameboy_automation.services.wait import wait_until
-
+from gameboy_automation.emulators import Button
 
 PARTY_SCREEN_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
@@ -91,7 +92,7 @@ class PartyScreen:
             return PartySlot.SLOT_2
 
         slot_3_pixel = screen.pixel(
-            103,
+            104,
             34,
         )
 
@@ -141,3 +142,116 @@ class PartyScreen:
         raise RuntimeError(
             "Could not determine the selected Pokémon party slot."
         )
+
+    def party_size(self) -> int:
+        """Return the number of Pokémon currently in the party."""
+        screen = self.session.screenshot()
+
+        slot_coordinates = [
+            (150, 20),
+            (150, 44),
+            (150, 68),
+            (150, 92),
+            (150, 116),
+        ]
+
+        slot_colors = []
+
+        for x, y in slot_coordinates:
+            pixel = screen.pixel(
+                x,
+                y,
+            )
+
+            slot_colors.append(
+                (
+                    pixel.red,
+                    pixel.green,
+                    pixel.blue,
+                )
+            )
+
+        party_size = 1
+
+        for index, color in enumerate(slot_colors):
+            remaining_colors = slot_colors[index:]
+
+            if len(remaining_colors) >= 2 and all(
+                remaining_color == color
+                for remaining_color in remaining_colors
+            ):
+                break
+
+            party_size += 1
+
+        return party_size
+
+    def _is_slot_selected(
+        self,
+        expected: PartySlot,
+    ) -> bool | None:
+        """Return True when the expected slot is selected."""
+        try:
+            selected = self.selected_slot()
+        except RuntimeError:
+            return None
+
+        if selected is expected:
+            return True
+
+        return None
+
+    def select(
+        self,
+        target: PartySlot,
+    ) -> None:
+        """Move the party cursor to the requested occupied slot."""
+        party_size = self.party_size()
+
+        if target.value > party_size:
+            raise ValueError(
+                f"Cannot select {target.name}; "
+                f"party contains {party_size} Pokémon."
+            )
+
+        current = self.selected_slot()
+
+        while current.value < target.value:
+            expected = PartySlot(current.value + 1)
+
+            self.session.press(
+                Button.DOWN,
+            )
+
+            wait_until(
+                lambda: self._is_slot_selected(expected),
+                timeout_seconds=5.0,
+                poll_interval_seconds=0.05,
+                description=f"party cursor to move to {expected.name}",
+            )
+
+            time.sleep(0.25)
+
+            current = expected
+
+            current = expected
+
+        while current.value > target.value:
+            expected = PartySlot(current.value - 1)
+
+            self.session.press(
+                Button.UP,
+            )
+
+            wait_until(
+                lambda: self._is_slot_selected(expected),
+                timeout_seconds=5.0,
+                poll_interval_seconds=0.05,
+                description=f"party cursor to move to {expected.name}",
+            )
+
+            time.sleep(0.25)
+
+            current = expected
+
+            current = expected

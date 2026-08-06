@@ -1,5 +1,5 @@
 from unittest.mock import Mock
-
+import pytest
 import bootstrap
 
 from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
@@ -7,6 +7,7 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
     PartyScreen,
     PartySlot,
 )
+from gameboy_automation.emulators import Button
 
 
 def test_is_visible_returns_true_when_template_is_found():
@@ -195,3 +196,134 @@ def test_selected_slot_returns_slot_6():
     )
 
     assert party_screen.selected_slot() is PartySlot.SLOT_6
+
+def test_party_size_returns_3():
+    session = Mock()
+    screen = Mock()
+
+    screen.pixel.side_effect = [
+        Mock(red=57, green=148, blue=222),  # slot 2 occupied
+        Mock(red=255, green=255, blue=255),  # slot 3 occupied
+        Mock(red=57, green=140, blue=140),  # slot 4 empty
+        Mock(red=57, green=140, blue=140),  # slot 5 empty
+        Mock(red=57, green=140, blue=140),  # slot 6 empty
+    ]
+
+    session.screenshot.return_value = screen
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    assert party_screen.party_size() == 3
+
+def test_party_size_returns_6():
+    session = Mock()
+    screen = Mock()
+
+    screen.pixel.side_effect = [
+        Mock(red=57, green=148, blue=222),
+        Mock(red=255, green=255, blue=255),
+        Mock(red=115, green=115, blue=115),
+        Mock(red=57, green=148, blue=222),
+        Mock(red=82, green=82, blue=82),
+    ]
+
+    session.screenshot.return_value = screen
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    assert party_screen.party_size() == 6
+
+def test_select_moves_down_to_target_slot(monkeypatch):
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.party_screen.time.sleep",
+        Mock(),
+    )
+
+    session = Mock()
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    party_screen.party_size = Mock(
+        return_value=6,
+    )
+
+    party_screen.selected_slot = Mock(
+        side_effect=[
+            PartySlot.SLOT_2,
+            PartySlot.SLOT_3,
+            PartySlot.SLOT_4,
+        ]
+    )
+
+    party_screen.select(
+        PartySlot.SLOT_4,
+    )
+
+    assert session.press.call_count == 2
+
+    session.press.assert_called_with(
+        Button.DOWN,
+    )
+
+
+def test_select_moves_up_to_target_slot(monkeypatch):
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.party_screen.time.sleep",
+        Mock(),
+    )
+
+    session = Mock()
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    party_screen.party_size = Mock(
+        return_value=6,
+    )
+
+    party_screen.selected_slot = Mock(
+        side_effect=[
+            PartySlot.SLOT_5,
+            PartySlot.SLOT_4,
+            PartySlot.SLOT_3,
+        ]
+    )
+
+    party_screen.select(
+        PartySlot.SLOT_3,
+    )
+
+    assert session.press.call_count == 2
+
+    session.press.assert_called_with(
+        Button.UP,
+    )
+
+
+def test_select_rejects_slot_beyond_party_size():
+    session = Mock()
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    party_screen.party_size = Mock(
+        return_value=3,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Cannot select SLOT_6; party contains 3 Pokémon.",
+    ):
+        party_screen.select(
+            PartySlot.SLOT_6,
+        )
+
+    session.press.assert_not_called()
