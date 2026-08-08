@@ -7,6 +7,11 @@ from enum import Enum
 
 from gameboy_automation.emulators import Button
 
+from gameboy_automation.games.pokemon.ultraviolet.vision.number_reader import (
+    read_number_auto,
+)
+from gameboy_automation.vision import screen
+
 POKEMON_SUMMARY_INFO_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
     / "pokemon"
@@ -177,3 +182,165 @@ class PokemonSummaryScreen:
                 self.wait_until_skills_visible()
             elif current is PokemonSummaryPage.INFO:
                 self.wait_until_info_visible()
+
+    def level(self) -> int:
+        """Return the Pokémon's current level."""
+        if not self.is_info_visible():
+            raise RuntimeError(
+                "Pokémon level can only be read from the Info page."
+            )
+
+        screen = self.session.screenshot()
+
+        level_region = screen.crop(
+            left=14,
+            top=19,
+            right=32,
+            bottom=29,
+        )
+
+        return read_number_auto(
+            level_region,
+        )
+
+    def current_hp(self) -> int:
+        """Return the Pokémon's current HP."""
+        if not self.is_skills_visible():
+            raise RuntimeError(
+                "Pokémon current HP can only be read from the Skills page."
+            )
+
+        screen = self.session.screenshot()
+
+        hp_region = screen.crop(
+            left=195,
+            top=20,
+            right=213,
+            bottom=30,
+        )
+
+        return read_number_auto(
+            hp_region,
+        )
+
+    # temp
+    def max_hp(self) -> int:
+        """Return the Pokémon's maximum HP."""
+        if not self.is_skills_visible():
+            raise RuntimeError(
+                "Pokémon maximum HP can only be read from the Skills page."
+            )
+
+        screen = self.session.screenshot()
+
+        max_hp_region = screen.crop(
+            left=219,
+            top=20,
+            right=237,
+            bottom=30,
+        )
+
+        return read_number_auto(
+            max_hp_region,
+        )
+    # temp
+
+    def attack(self) -> int:
+        """Return the Pokémon's Attack stat."""
+        if not self.is_skills_visible():
+            raise RuntimeError(
+                "Pokémon Attack can only be read from the Skills page."
+            )
+
+        screen = self.session.screenshot()
+
+        attack_region = screen.crop(
+            left=219,
+            top=39,
+            right=237,
+            bottom=49,
+        )
+
+        return read_number_auto(
+            attack_region,
+        )
+
+    def defense(self) -> int:
+        """Return the Pokémon's Defense stat."""
+        if not self.is_skills_visible():
+            raise RuntimeError(
+                "Pokémon Defense can only be read from the Skills page."
+            )
+
+        screen = self.session.screenshot()
+
+        defense_region = screen.crop(
+            left=219,
+            top=51,
+            right=237,
+            bottom=61,
+        )
+
+        return read_number_auto(
+            defense_region,
+        )
+
+    def special_attack(self) -> int:
+        """Return the Pokémon's Special Attack stat."""
+        if not self.is_skills_visible():
+            raise RuntimeError(
+                "Pokémon Special Attack can only be read from the Skills page."
+            )
+
+        screen = self.session.screenshot()
+
+        special_attack_region = screen.crop(
+            left=219,
+            top=64,
+            right=237,
+            bottom=74,
+        )
+
+        return read_number_auto(
+            special_attack_region,
+        )
+
+    def special_defense(self) -> int:
+        """Return the Pokémon's Special Defense stat."""
+        if not self.is_skills_visible():
+            raise RuntimeError(
+                "Pokémon Special Defense can only be read from the Skills page."
+            )
+
+        screen = self.session.screenshot()
+
+        special_defense_region = screen.crop(
+            left=219,
+            top=77,
+            right=237,
+            bottom=87,
+        )
+
+        return read_number_auto(
+            special_defense_region,
+        )
+
+    def speed(self) -> int:
+        """Return the Pokémon's Speed stat."""
+        if not self.is_skills_visible():
+            raise RuntimeError(
+                "Pokémon Speed can only be read from the Skills page."
+            )
+
+        screen = self.session.screenshot()
+
+        speed_region = screen.crop(
+            left=219,
+            top=91,
+            right=237,
+            bottom=101,
+        )
+
+        return read_number_auto(
+            speed_region,
+        )

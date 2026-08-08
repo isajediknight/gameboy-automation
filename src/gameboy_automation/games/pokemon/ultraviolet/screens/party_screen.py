@@ -151,6 +151,12 @@ class PartyScreen:
         """Return the number of Pokémon currently in the party."""
         screen = self.session.screenshot()
 
+        empty_slot_color = (
+            57,
+            140,
+            140,
+        )
+
         slot_coordinates = [
             (150, 20),
             (150, 44),
@@ -159,7 +165,7 @@ class PartyScreen:
             (150, 116),
         ]
 
-        slot_colors = []
+        party_size = 1
 
         for x, y in slot_coordinates:
             pixel = screen.pixel(
@@ -167,23 +173,13 @@ class PartyScreen:
                 y,
             )
 
-            slot_colors.append(
-                (
-                    pixel.red,
-                    pixel.green,
-                    pixel.blue,
-                )
+            pixel_color = (
+                pixel.red,
+                pixel.green,
+                pixel.blue,
             )
 
-        party_size = 1
-
-        for index, color in enumerate(slot_colors):
-            remaining_colors = slot_colors[index:]
-
-            if len(remaining_colors) >= 2 and all(
-                remaining_color == color
-                for remaining_color in remaining_colors
-            ):
+            if pixel_color == empty_slot_color:
                 break
 
             party_size += 1

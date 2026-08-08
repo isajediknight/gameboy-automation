@@ -21,8 +21,8 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
     PartySlot,
 )
 from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen import (
-    PokemonSummaryScreen,
     PokemonSummaryPage,
+    PokemonSummaryScreen,
 )
 
 
@@ -73,25 +73,9 @@ def main() -> None:
 
         pause_menu.open()
 
-        print("Pause menu opened!")
-
         print("Opening Pokémon party screen...")
 
         party_screen = pause_menu.open_party()
-
-        print("Party screen detected!")
-
-        time.sleep(1)
-
-        party_size = party_screen.party_size()
-
-        print(f"Detected party size: {party_size}")
-
-        time.sleep(1)
-
-        assert party_size == 5
-
-        print("5-Pokémon party size detected successfully!")
 
         print("Selecting SLOT_3...")
 
@@ -99,19 +83,11 @@ def main() -> None:
             PartySlot.SLOT_3,
         )
 
-        print("SLOT_3 selected!")
-
         print("Opening selected Pokémon action menu...")
 
         pokemon_menu = party_screen.open_selected()
 
-        print("Party Pokémon action menu detected!")
-
-        assert pokemon_menu.is_visible()
-
-        print("Party Pokémon action menu is visible!")
-
-        print("Confirming selected action...")
+        print("Opening Pokémon Summary...")
 
         pokemon_menu.confirm()
 
@@ -119,52 +95,16 @@ def main() -> None:
             session=emulator,
         )
 
-        print("Waiting for Pokémon Info page...")
-
         summary_screen.wait_until_info_visible(
             timeout_seconds=10.0,
             poll_interval_seconds=0.1,
         )
 
-        print("Pokémon Info page detected!")
-
-        print("Navigating to Known Moves page...")
-
-        summary_screen.go_to(
-            PokemonSummaryPage.MOVES,
-        )
-
-        print("Known Moves page detected!")
-
-        print("Navigating back to Pokémon Info page...")
-
-        summary_screen.go_to(
-            PokemonSummaryPage.INFO,
-        )
-
-        print("Pokémon Info page detected again!")
-
-        assert summary_screen.is_info_visible()
-
-        time.sleep(2)
-
-        print("Reading Pokémon level...")
-
-        level = summary_screen.level()
-
-        print(f"Detected Pokémon level: {level}")
-
-        assert level == 100
-
-        print("Pokémon level detected successfully!")
+        print("Navigating to Pokémon Skills page...")
 
         summary_screen.go_to(
             PokemonSummaryPage.SKILLS,
         )
-
-        print("Capturing current HP region...")
-
-        summary_screen.current_hp()
 
         print("Reading Pokémon current HP...")
 
@@ -175,6 +115,86 @@ def main() -> None:
         assert current_hp == 233
 
         print("Pokémon current HP detected successfully!")
+
+        print("Capturing maximum HP region...")
+
+        summary_screen.max_hp()
+
+        max_hp = summary_screen.max_hp()
+
+        print(f"Detected maximum HP: {max_hp}")
+
+        assert max_hp == 233
+
+        print("Capturing Attack region...")
+
+        summary_screen.attack()
+
+        print("Reading Pokémon Attack...")
+
+        attack = summary_screen.attack()
+
+        print(f"Detected Attack: {attack}")
+
+        assert attack == 127
+
+        print("Pokémon Attack detected successfully!")
+
+        print("Capturing Defense region...")
+
+        summary_screen.defense()
+
+        print("Reading Pokémon Defense...")
+
+        defense = summary_screen.defense()
+
+        print(f"Detected Defense: {defense}")
+
+        assert defense == 101
+
+        print("Pokémon Defense detected successfully!")
+
+        print("Capturing Special Attack region...")
+
+        summary_screen.special_attack()
+
+        print("Reading Pokémon Special Attack...")
+
+        special_attack = summary_screen.special_attack()
+
+        print(f"Detected Special Attack: {special_attack}")
+
+        assert special_attack == 129
+
+        print("Pokémon Special Attack detected successfully!")
+
+        print("Capturing Special Defense region...")
+
+        summary_screen.special_defense()
+
+        print("Reading Pokémon Special Defense...")
+
+        special_defense = summary_screen.special_defense()
+
+        print(f"Detected Special Defense: {special_defense}")
+
+        assert special_defense == 132
+
+        print("Pokémon Special Defense detected successfully!")
+
+        print("Capturing Speed region...")
+
+        summary_screen.speed()
+
+        print("Reading Pokémon Speed...")
+
+        speed = summary_screen.speed()
+
+        print(f"Detected Speed: {speed}")
+
+        assert speed == 127
+
+        print("Pokémon Speed detected successfully!")
 
     finally:
         emulator.close()

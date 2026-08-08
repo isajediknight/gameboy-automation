@@ -351,3 +351,23 @@ def test_open_selected_opens_party_pokemon_menu(monkeypatch):
     menu.wait_until_visible.assert_called_once_with()
 
     assert result is menu
+
+def test_party_size_returns_5():
+    session = Mock()
+    screen = Mock()
+
+    screen.pixel.side_effect = [
+        Mock(red=255, green=255, blue=255),
+        Mock(red=57, green=148, blue=222),
+        Mock(red=57, green=148, blue=222),
+        Mock(red=255, green=255, blue=255),
+        Mock(red=57, green=140, blue=140),
+    ]
+
+    session.screenshot.return_value = screen
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    assert party_screen.party_size() == 5
