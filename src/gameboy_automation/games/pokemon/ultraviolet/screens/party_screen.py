@@ -6,6 +6,10 @@ from gameboy_automation.runtime.session import Session
 from gameboy_automation.services.wait import wait_until
 from gameboy_automation.emulators import Button
 
+from gameboy_automation.games.pokemon.ultraviolet.screens.party_pokemon_menu import (
+    PartyPokemonMenu,
+)
+
 PARTY_SCREEN_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
     / "pokemon"
@@ -255,3 +259,16 @@ class PartyScreen:
             current = expected
 
             current = expected
+    def open_selected(self) -> PartyPokemonMenu:
+        """Open the action menu for the currently selected Pokémon."""
+        self.session.press(
+            Button.A,
+        )
+
+        menu = PartyPokemonMenu(
+            session=self.session,
+        )
+
+        menu.wait_until_visible()
+
+        return menu

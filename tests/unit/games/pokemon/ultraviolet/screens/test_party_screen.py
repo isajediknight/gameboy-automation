@@ -327,3 +327,27 @@ def test_select_rejects_slot_beyond_party_size():
         )
 
     session.press.assert_not_called()
+
+def test_open_selected_opens_party_pokemon_menu(monkeypatch):
+    session = Mock()
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    menu = Mock()
+
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.party_screen.PartyPokemonMenu",
+        Mock(return_value=menu),
+    )
+
+    result = party_screen.open_selected()
+
+    session.press.assert_called_once_with(
+        Button.A,
+    )
+
+    menu.wait_until_visible.assert_called_once_with()
+
+    assert result is menu

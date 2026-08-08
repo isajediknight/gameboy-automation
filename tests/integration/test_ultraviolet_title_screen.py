@@ -20,6 +20,10 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (  #
 from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
     PartySlot,
 )
+from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen import (
+    PokemonSummaryScreen,
+    PokemonSummaryPage,
+)
 
 
 def main() -> None:
@@ -79,31 +83,6 @@ def main() -> None:
 
         time.sleep(1)
 
-        screen = emulator.screenshot()
-
-        debug_coordinates = [
-            (150, 20),
-            (150, 44),
-            (150, 68),
-            (150, 92),
-            (150, 116),
-        ]
-
-        for coordinate in debug_coordinates:
-            pixel = screen.pixel(*coordinate)
-
-            print(
-                f"Pixel {coordinate}: "
-                f"({pixel.red}, {pixel.green}, {pixel.blue})"
-            )
-
-        screen.save(
-            repo_root
-            / "output"
-            / "screenshots"
-            / "party_size_debug.png"
-        )
-
         party_size = party_screen.party_size()
 
         print(f"Detected party size: {party_size}")
@@ -112,15 +91,11 @@ def main() -> None:
 
         print("3-Pokémon party size detected successfully!")
 
-        time.sleep(2)
-
         print("Selecting SLOT_3...")
 
         party_screen.select(
             PartySlot.SLOT_3,
         )
-
-        time.sleep(1)
 
         selected_slot = party_screen.selected_slot()
 
@@ -128,48 +103,52 @@ def main() -> None:
 
         assert selected_slot is PartySlot.SLOT_3
 
-        print("Pressing A on selected Pokémon...")
+        print("Opening selected Pokémon action menu...")
 
-        emulator.press(
-            Button.A,
+        pokemon_menu = party_screen.open_selected()
+
+        print("Party Pokémon action menu detected!")
+
+        assert pokemon_menu.is_visible()
+
+        print("Party Pokémon action menu is visible!")
+
+        print("Confirming selected action...")
+
+        pokemon_menu.confirm()
+
+        summary_screen = PokemonSummaryScreen(
+            session=emulator,
         )
 
-        time.sleep(1)
+        print("Waiting for Pokémon Info page...")
 
-        screen = emulator.screenshot()
-
-        screen.save(
-            repo_root
-            / "output"
-            / "screenshots"
-            / "party_pokemon_selected_menu.png"
+        summary_screen.wait_until_info_visible(
+            timeout_seconds=10.0,
+            poll_interval_seconds=0.1,
         )
 
-        print("Saved selected Pokémon menu screenshot.")
+        print("Pokémon Info page detected!")
 
-        time.sleep(5)
+        print("Navigating to Known Moves page...")
 
-        print("Attempting to select unavailable SLOT_6...")
-
-        #try:
-        #    party_screen.select(
-        #        PartySlot.SLOT_6,
-        #    )
-        #except ValueError as error:
-        #    print(f"Correctly rejected SLOT_6: {error}")
-        #else:
-        #    raise AssertionError(
-        #        "Expected SLOT_6 selection to be rejected."
-        #    )
-
-        selected_slot = party_screen.selected_slot()
-
-        print(
-            f"Party slot after rejected selection: "
-            f"{selected_slot.name}"
+        summary_screen.go_to(
+            PokemonSummaryPage.MOVES,
         )
 
-        assert selected_slot is PartySlot.SLOT_3
+        print("Known Moves page detected!")
+
+        print("Navigating back to Pokémon Info page...")
+
+        summary_screen.go_to(
+            PokemonSummaryPage.INFO,
+        )
+
+        print("Pokémon Info page detected again!")
+
+        assert summary_screen.is_info_visible()
+
+        time.sleep(2)
 
     finally:
         emulator.close()
