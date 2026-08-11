@@ -106,109 +106,23 @@ def main() -> None:
             PokemonSummaryPage.SKILLS,
         )
 
-        print("Reading Pokémon current HP...")
+        print("Reading all Pokémon stats...")
 
-        current_hp = summary_screen.current_hp()
+        stats = summary_screen.stats()
 
-        print(f"Detected current HP: {current_hp}")
+        print(stats)
 
-        assert current_hp == 233
+        assert stats.current_hp == 68
+        assert stats.max_hp == 68
+        assert stats.attack == 33
+        assert stats.defense == 41
+        assert stats.special_attack == 48
+        assert stats.special_defense == 47
+        assert stats.speed == 31
+        assert stats.experience == 15625
+        assert stats.next_level_experience == 1951
 
-        print("Pokémon current HP detected successfully!")
-
-        print("Capturing maximum HP region...")
-
-        summary_screen.max_hp()
-
-        max_hp = summary_screen.max_hp()
-
-        print(f"Detected maximum HP: {max_hp}")
-
-        assert max_hp == 233
-
-        print("Capturing Attack region...")
-
-        summary_screen.attack()
-
-        print("Reading Pokémon Attack...")
-
-        attack = summary_screen.attack()
-
-        print(f"Detected Attack: {attack}")
-
-        assert attack == 127
-
-        print("Pokémon Attack detected successfully!")
-
-        print("Capturing Defense region...")
-
-        summary_screen.defense()
-
-        print("Reading Pokémon Defense...")
-
-        defense = summary_screen.defense()
-
-        print(f"Detected Defense: {defense}")
-
-        assert defense == 101
-
-        print("Pokémon Defense detected successfully!")
-
-        print("Capturing Special Attack region...")
-
-        summary_screen.special_attack()
-
-        print("Reading Pokémon Special Attack...")
-
-        special_attack = summary_screen.special_attack()
-
-        print(f"Detected Special Attack: {special_attack}")
-
-        assert special_attack == 129
-
-        print("Pokémon Special Attack detected successfully!")
-
-        print("Capturing Special Defense region...")
-
-        summary_screen.special_defense()
-
-        print("Reading Pokémon Special Defense...")
-
-        special_defense = summary_screen.special_defense()
-
-        print(f"Detected Special Defense: {special_defense}")
-
-        assert special_defense == 132
-
-        print("Pokémon Special Defense detected successfully!")
-
-        print("Capturing Speed region...")
-
-        summary_screen.speed()
-
-        print("Reading Pokémon Speed...")
-
-        speed = summary_screen.speed()
-
-        print(f"Detected Speed: {speed}")
-
-        assert speed == 127
-
-        print("Pokémon Speed detected successfully!")
-
-        print("Capturing Experience region...")
-
-        summary_screen.experience()
-
-        print("Reading Pokémon Experience...")
-
-        experience = summary_screen.experience()
-
-        print(f"Detected Experience: {experience}")
-
-        assert experience == 1000000
-
-        print("Pokémon Experience detected successfully!")
+        print("All Pokémon stats detected successfully!")
 
     finally:
         emulator.close()

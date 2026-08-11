@@ -8,6 +8,8 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen
     POKEMON_SUMMARY_SKILLS_TEMPLATE_PATH,
     PokemonSummaryScreen,
     PokemonSummaryPage,
+    PokemonStats,
+    PokemonSummary,
 )
 from gameboy_automation.emulators import Button
 
@@ -279,58 +281,35 @@ def test_level_requires_info_page():
     ):
         summary.level()
 
-def test_current_hp_reads_hp_from_skills_page(monkeypatch):
-    session = Mock()
-    screen = Mock()
-    hp_region = Mock()
-
-    session.screenshot.return_value = screen
-    screen.crop.return_value = hp_region
-
+def test_current_hp_returns_current_value_from_hp():
     summary = PokemonSummaryScreen(
-        session=session,
+        session=Mock(),
     )
 
-    summary.is_skills_visible = Mock(
-        return_value=True,
-    )
-
-    read_number_auto_mock = Mock(
-        return_value=233,
-    )
-
-    monkeypatch.setattr(
-        "gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen.read_number_auto",
-        read_number_auto_mock,
+    summary.hp = Mock(
+        return_value=(233, 233),
     )
 
     result = summary.current_hp()
 
     assert result == 233
 
-    screen.crop.assert_called_once_with(
-        left=195,
-        top=20,
-        right=213,
-        bottom=30,
-    )
+    summary.hp.assert_called_once_with()
 
-    read_number_auto_mock.assert_called_once_with(
-        hp_region,
-    )
-
-def test_current_hp_requires_skills_page():
+def test_current_hp_propagates_hp_error():
     summary = PokemonSummaryScreen(
         session=Mock(),
     )
 
-    summary.is_skills_visible = Mock(
-        return_value=False,
+    summary.hp = Mock(
+        side_effect=RuntimeError(
+            "Pokémon HP can only be read from the Skills page."
+        ),
     )
 
     with pytest.raises(
         RuntimeError,
-        match="Pokémon current HP can only be read from the Skills page.",
+        match="Pokémon HP can only be read from the Skills page.",
     ):
         summary.current_hp()
 
@@ -608,3 +587,249 @@ def test_speed_requires_skills_page():
         match="Pokémon Speed can only be read from the Skills page.",
     ):
         summary.speed()
+
+def test_experience_reads_experience_from_skills_page(monkeypatch):
+    session = Mock()
+    screen = Mock()
+    experience_region = Mock()
+
+    session.screenshot.return_value = screen
+    screen.crop.return_value = experience_region
+
+    summary = PokemonSummaryScreen(
+        session=session,
+    )
+
+    summary.is_skills_visible = Mock(
+        return_value=True,
+    )
+
+    read_number_auto_mock = Mock(
+        return_value=1000000,
+    )
+
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen.read_number_auto",
+        read_number_auto_mock,
+    )
+
+    result = summary.experience()
+
+    assert result == 1000000
+
+    screen.crop.assert_called_once_with(
+        left=190,
+        top=104,
+        right=240,
+        bottom=114,
+    )
+
+    read_number_auto_mock.assert_called_once_with(
+        experience_region,
+    )
+
+def test_experience_requires_skills_page():
+    summary = PokemonSummaryScreen(
+        session=Mock(),
+    )
+
+    summary.is_skills_visible = Mock(
+        return_value=False,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="Pokémon experience can only be read from the Skills page.",
+    ):
+        summary.experience()
+
+def test_next_level_experience_reads_value_from_skills_page(monkeypatch):
+    session = Mock()
+    screen = Mock()
+    next_level_experience_region = Mock()
+
+    session.screenshot.return_value = screen
+    screen.crop.return_value = next_level_experience_region
+
+    summary = PokemonSummaryScreen(
+        session=session,
+    )
+
+    summary.is_skills_visible = Mock(
+        return_value=True,
+    )
+
+    read_number_auto_mock = Mock(
+        return_value=1951,
+    )
+
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen.read_number_auto",
+        read_number_auto_mock,
+    )
+
+    result = summary.next_level_experience()
+
+    assert result == 1951
+
+    screen.crop.assert_called_once_with(
+        left=208,
+        top=116,
+        right=240,
+        bottom=126,
+    )
+
+    read_number_auto_mock.assert_called_once_with(
+        next_level_experience_region,
+    )
+
+def test_next_level_experience_requires_skills_page():
+    summary = PokemonSummaryScreen(
+        session=Mock(),
+    )
+
+    summary.is_skills_visible = Mock(
+        return_value=False,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match=(
+            "Pokémon next-level experience can only be read "
+            "from the Skills page."
+        ),
+    ):
+        summary.next_level_experience()
+
+def test_stats_reads_all_numeric_values():
+    session = Mock()
+    screen = Mock()
+
+    session.screenshot.return_value = screen
+
+    summary = PokemonSummaryScreen(
+        session=session,
+    )
+
+    summary.is_skills_visible = Mock(
+        return_value=True,
+    )
+
+    summary._read_hp = Mock(
+        return_value=(68, 68),
+    )
+
+    summary._read_attack = Mock(
+        return_value=33,
+    )
+
+    summary._read_defense = Mock(
+        return_value=41,
+    )
+
+    summary._read_special_attack = Mock(
+        return_value=48,
+    )
+
+    summary._read_special_defense = Mock(
+        return_value=47,
+    )
+
+    summary._read_speed = Mock(
+        return_value=31,
+    )
+
+    summary._read_experience = Mock(
+        return_value=15625,
+    )
+
+    summary._read_next_level_experience = Mock(
+        return_value=1951,
+    )
+
+    result = summary.stats()
+
+    assert result == PokemonStats(
+        current_hp=68,
+        max_hp=68,
+        attack=33,
+        defense=41,
+        special_attack=48,
+        special_defense=47,
+        speed=31,
+        experience=15625,
+        next_level_experience=1951,
+    )
+
+    session.screenshot.assert_called_once_with()
+
+    summary._read_hp.assert_called_once_with(screen)
+    summary._read_attack.assert_called_once_with(screen)
+    summary._read_defense.assert_called_once_with(screen)
+    summary._read_special_attack.assert_called_once_with(screen)
+    summary._read_special_defense.assert_called_once_with(screen)
+    summary._read_speed.assert_called_once_with(screen)
+    summary._read_experience.assert_called_once_with(screen)
+    summary._read_next_level_experience.assert_called_once_with(
+        screen
+    )
+
+def test_stats_requires_skills_page():
+    summary = PokemonSummaryScreen(
+        session=Mock(),
+    )
+
+    summary.is_skills_visible = Mock(
+        return_value=False,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="Pokémon stats can only be read from the Skills page.",
+    ):
+        summary.stats()
+
+def test_read_summary_combines_level_and_stats():
+    summary_screen = PokemonSummaryScreen(
+        session=Mock(),
+    )
+
+    stats = PokemonStats(
+        current_hp=68,
+        max_hp=68,
+        attack=33,
+        defense=41,
+        special_attack=48,
+        special_defense=47,
+        speed=31,
+        experience=15625,
+        next_level_experience=1951,
+    )
+
+    summary_screen.go_to = Mock()
+    summary_screen.level = Mock(
+        return_value=25,
+    )
+    summary_screen.stats = Mock(
+        return_value=stats,
+    )
+
+    result = summary_screen.read_summary()
+
+    assert result == PokemonSummary(
+        level=25,
+        stats=stats,
+    )
+
+    assert summary_screen.go_to.call_count == 2
+
+    summary_screen.go_to.assert_any_call(
+        PokemonSummaryPage.INFO,
+    )
+
+    summary_screen.go_to.assert_any_call(
+        PokemonSummaryPage.SKILLS,
+    )
+
+    summary_screen.level.assert_called_once_with()
+    summary_screen.stats.assert_called_once_with()
