@@ -21,8 +21,8 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
     PartySlot,
 )
 from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen import (
-    PokemonSummaryPage,
     PokemonSummaryScreen,
+    PokemonNature,
 )
 
 
@@ -100,29 +100,30 @@ def main() -> None:
             poll_interval_seconds=0.1,
         )
 
-        print("Navigating to Pokémon Skills page...")
+        print("Capturing Pokémon species region...")
 
-        summary_screen.go_to(
-            PokemonSummaryPage.SKILLS,
-        )
+        summary_screen.species()
 
-        print("Reading all Pokémon stats...")
+        print("Reading complete Pokémon summary...")
 
-        stats = summary_screen.stats()
+        pokemon = summary_screen.read_summary()
 
-        print(stats)
+        print(pokemon)
 
-        assert stats.current_hp == 68
-        assert stats.max_hp == 68
-        assert stats.attack == 33
-        assert stats.defense == 41
-        assert stats.special_attack == 48
-        assert stats.special_defense == 47
-        assert stats.speed == 31
-        assert stats.experience == 15625
-        assert stats.next_level_experience == 1951
+        assert pokemon.level == 25
+        assert pokemon.nature is PokemonNature.TIMID
 
-        print("All Pokémon stats detected successfully!")
+        assert pokemon.stats.current_hp == 68
+        assert pokemon.stats.max_hp == 68
+        assert pokemon.stats.attack == 33
+        assert pokemon.stats.defense == 41
+        assert pokemon.stats.special_attack == 48
+        assert pokemon.stats.special_defense == 47
+        assert pokemon.stats.speed == 31
+        assert pokemon.stats.experience == 15625
+        assert pokemon.stats.next_level_experience == 1951
+
+        print("Complete Pokémon summary detected successfully!")
 
     finally:
         emulator.close()

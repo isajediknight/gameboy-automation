@@ -10,6 +10,8 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen
     PokemonSummaryPage,
     PokemonStats,
     PokemonSummary,
+    PokemonNature,
+    POKEMON_NATURE_TEMPLATE_DIRECTORY,
 )
 from gameboy_automation.emulators import Button
 
@@ -789,7 +791,7 @@ def test_stats_requires_skills_page():
     ):
         summary.stats()
 
-def test_read_summary_combines_level_and_stats():
+def test_read_summary_combines_info_and_stats():
     summary_screen = PokemonSummaryScreen(
         session=Mock(),
     )
@@ -807,9 +809,15 @@ def test_read_summary_combines_level_and_stats():
     )
 
     summary_screen.go_to = Mock()
+
     summary_screen.level = Mock(
         return_value=25,
     )
+
+    summary_screen.nature = Mock(
+        return_value=PokemonNature.TIMID,
+    )
+
     summary_screen.stats = Mock(
         return_value=stats,
     )
@@ -818,6 +826,7 @@ def test_read_summary_combines_level_and_stats():
 
     assert result == PokemonSummary(
         level=25,
+        nature=PokemonNature.TIMID,
         stats=stats,
     )
 
@@ -832,4 +841,57 @@ def test_read_summary_combines_level_and_stats():
     )
 
     summary_screen.level.assert_called_once_with()
+    summary_screen.nature.assert_called_once_with()
     summary_screen.stats.assert_called_once_with()
+
+def test_nature_returns_timid_when_timid_template_is_found():
+    session = Mock()
+    screen = Mock()
+    nature_region = Mock()
+    match = Mock()
+
+    match.found = True
+
+    session.screenshot.return_value = screen
+    screen.crop.return_value = nature_region
+    nature_region.find_template.return_value = match
+
+    summary = PokemonSummaryScreen(
+        session=session,
+    )
+
+    summary.is_info_visible = Mock(
+        return_value=True,
+    )
+
+    result = summary.nature()
+
+    assert result is PokemonNature.TIMID
+
+    screen.crop.assert_called_once_with(
+        left=5,
+        top=114,
+        right=102,
+        bottom=126,
+    )
+
+    template_path=(
+        POKEMON_NATURE_TEMPLATE_DIRECTORY
+        / "timid.png"
+    ),
+
+
+def test_nature_requires_info_page():
+    summary = PokemonSummaryScreen(
+        session=Mock(),
+    )
+
+    summary.is_info_visible = Mock(
+        return_value=False,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="Pokémon nature can only be read from the Info page.",
+    ):
+        summary.nature()

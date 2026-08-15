@@ -1,17 +1,14 @@
-from pathlib import Path
-
-from gameboy_automation.runtime.session import Session
-from gameboy_automation.services.wait import wait_until
-import time
+from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+import time
 
 from gameboy_automation.emulators import Button
-
 from gameboy_automation.games.pokemon.ultraviolet.vision.number_reader import (
     read_number_auto,
 )
-from gameboy_automation.vision import screen
-from dataclasses import dataclass
+from gameboy_automation.runtime.session import Session
+from gameboy_automation.services.wait import wait_until
 
 POKEMON_SUMMARY_INFO_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
@@ -45,6 +42,39 @@ class PokemonSummaryPage(Enum):
     SKILLS = 2
     MOVES = 3
 
+
+class PokemonNature(Enum):
+    HARDY = "HARDY"
+    LONELY = "LONELY"
+    BRAVE = "BRAVE"
+    ADAMANT = "ADAMANT"
+    NAUGHTY = "NAUGHTY"
+
+    BOLD = "BOLD"
+    DOCILE = "DOCILE"
+    RELAXED = "RELAXED"
+    IMPISH = "IMPISH"
+    LAX = "LAX"
+
+    TIMID = "TIMID"
+    HASTY = "HASTY"
+    SERIOUS = "SERIOUS"
+    JOLLY = "JOLLY"
+    NAIVE = "NAIVE"
+
+    MODEST = "MODEST"
+    MILD = "MILD"
+    QUIET = "QUIET"
+    BASHFUL = "BASHFUL"
+    RASH = "RASH"
+
+    CALM = "CALM"
+    GENTLE = "GENTLE"
+    SASSY = "SASSY"
+    CAREFUL = "CAREFUL"
+    QUIRKY = "QUIRKY"
+
+
 @dataclass(frozen=True)
 class PokemonStats:
     current_hp: int
@@ -57,10 +87,21 @@ class PokemonStats:
     experience: int
     next_level_experience: int
 
+
 @dataclass(frozen=True)
 class PokemonSummary:
     level: int
+    nature: PokemonNature
     stats: PokemonStats
+
+
+POKEMON_NATURE_TEMPLATE_DIRECTORY = (
+    Path(__file__).resolve().parents[1]
+    / "assets"
+    / "templates"
+    / "natures"
+)
+
 
 class PokemonSummaryScreen:
     """Represents the Pokémon Ultra Violet Pokémon summary screen."""
@@ -262,17 +303,8 @@ class PokemonSummaryScreen:
                 "Pokémon Defense can only be read from the Skills page."
             )
 
-        screen = self.session.screenshot()
-
-        defense_region = screen.crop(
-            left=219,
-            top=51,
-            right=237,
-            bottom=61,
-        )
-
-        return read_number_auto(
-            defense_region,
+        return self._read_defense(
+            self.session.screenshot()
         )
 
     def special_attack(self) -> int:
@@ -282,17 +314,8 @@ class PokemonSummaryScreen:
                 "Pokémon Special Attack can only be read from the Skills page."
             )
 
-        screen = self.session.screenshot()
-
-        special_attack_region = screen.crop(
-            left=219,
-            top=64,
-            right=237,
-            bottom=74,
-        )
-
-        return read_number_auto(
-            special_attack_region,
+        return self._read_special_attack(
+            self.session.screenshot()
         )
 
     def special_defense(self) -> int:
@@ -302,17 +325,8 @@ class PokemonSummaryScreen:
                 "Pokémon Special Defense can only be read from the Skills page."
             )
 
-        screen = self.session.screenshot()
-
-        special_defense_region = screen.crop(
-            left=219,
-            top=77,
-            right=237,
-            bottom=87,
-        )
-
-        return read_number_auto(
-            special_defense_region,
+        return self._read_special_defense(
+            self.session.screenshot()
         )
 
     def speed(self) -> int:
@@ -322,17 +336,8 @@ class PokemonSummaryScreen:
                 "Pokémon Speed can only be read from the Skills page."
             )
 
-        screen = self.session.screenshot()
-
-        speed_region = screen.crop(
-            left=219,
-            top=91,
-            right=237,
-            bottom=101,
-        )
-
-        return read_number_auto(
-            speed_region,
+        return self._read_speed(
+            self.session.screenshot()
         )
 
     def experience(self) -> int:
@@ -342,37 +347,20 @@ class PokemonSummaryScreen:
                 "Pokémon experience can only be read from the Skills page."
             )
 
-        screen = self.session.screenshot()
-
-        experience_region = screen.crop(
-            left=190,
-            top=104,
-            right=240,
-            bottom=114,
-        )
-
-        return read_number_auto(
-            experience_region,
+        return self._read_experience(
+            self.session.screenshot()
         )
 
     def next_level_experience(self) -> int:
         """Return the experience points required to reach the next level."""
         if not self.is_skills_visible():
             raise RuntimeError(
-                "Pokémon next-level experience can only be read from the Skills page."
+                "Pokémon next-level experience can only be read "
+                "from the Skills page."
             )
 
-        screen = self.session.screenshot()
-
-        next_level_experience_region = screen.crop(
-            left=208,
-            top=116,
-            right=240,
-            bottom=126,
-        )
-
-        return read_number_auto(
-            next_level_experience_region,
+        return self._read_next_level_experience(
+            self.session.screenshot()
         )
 
     def stats(self) -> PokemonStats:
@@ -400,7 +388,7 @@ class PokemonSummaryScreen:
             ),
         )
     
-    def _read_hp(self,screen,) -> tuple[int, int]:
+    def _read_hp(self, screen) -> tuple[int, int]:
         """Read current and maximum HP from a Skills-page screenshot."""
         hp_region = screen.crop(
             left=195,
@@ -520,16 +508,13 @@ class PokemonSummaryScreen:
         )
 
     def read_summary(self) -> PokemonSummary:
-        """
-        Read the Pokémon's numeric summary.
-
-        The method navigates between the Info and Skills pages as needed.
-        """
+        """Read the Pokémon's summary."""
         self.go_to(
             PokemonSummaryPage.INFO,
         )
 
         level = self.level()
+        nature = self.nature()
 
         self.go_to(
             PokemonSummaryPage.SKILLS,
@@ -539,5 +524,64 @@ class PokemonSummaryScreen:
 
         return PokemonSummary(
             level=level,
+            nature=nature,
             stats=stats,
         )
+
+    def nature(self) -> PokemonNature:
+        """Return the Pokémon's nature."""
+        if not self.is_info_visible():
+            raise RuntimeError(
+                "Pokémon nature can only be read from the Info page."
+            )
+
+        screen = self.session.screenshot()
+
+        nature_region = screen.crop(
+            left=5,
+            top=114,
+            right=102,
+            bottom=126,
+        )
+
+        for nature in PokemonNature:
+            template_path = (
+                POKEMON_NATURE_TEMPLATE_DIRECTORY
+                / f"{nature.value.lower()}.png"
+            )
+
+            if not template_path.exists():
+                continue
+
+            match = nature_region.find_template(
+                template_path=template_path,
+            )
+
+            if match.found:
+                return nature
+
+        raise RuntimeError(
+            "Could not determine the Pokémon's nature."
+        )
+
+    def species(self) -> str:
+        """Return the Pokémon's species."""
+        if not self.is_info_visible():
+            raise RuntimeError(
+                "Pokémon species can only be read from the Info page."
+            )
+
+        screen = self.session.screenshot()
+
+        species_region = screen.crop(
+            left=38,
+            top=16,
+            right=120,
+            bottom=29,
+        )
+
+        species_region.save(
+            "output/screenshots/species_debug.png"
+        )
+
+        return ""
