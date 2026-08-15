@@ -10,6 +10,11 @@ from gameboy_automation.games.pokemon.ultraviolet.vision.number_reader import (
 from gameboy_automation.runtime.session import Session
 from gameboy_automation.services.wait import wait_until
 
+from gameboy_automation.games.pokemon.ultraviolet.vision.text_reader import (
+    TextRecognitionError,
+    read_text,
+)
+
 POKEMON_SUMMARY_INFO_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
     / "pokemon"
@@ -90,6 +95,7 @@ class PokemonStats:
 
 @dataclass(frozen=True)
 class PokemonSummary:
+    species: str
     level: int
     nature: PokemonNature
     stats: PokemonStats
@@ -513,6 +519,7 @@ class PokemonSummaryScreen:
             PokemonSummaryPage.INFO,
         )
 
+        species = self.species()
         level = self.level()
         nature = self.nature()
 
@@ -523,6 +530,7 @@ class PokemonSummaryScreen:
         stats = self.stats()
 
         return PokemonSummary(
+            species=species,
             level=level,
             nature=nature,
             stats=stats,
@@ -542,6 +550,10 @@ class PokemonSummaryScreen:
             top=114,
             right=102,
             bottom=126,
+        )
+
+        nature_region.save(
+            "output/screenshots/nature_eevee_debug.png"
         )
 
         for nature in PokemonNature:
@@ -565,23 +577,35 @@ class PokemonSummaryScreen:
         )
 
     def species(self) -> str:
-        """Return the Pokémon's species."""
+        """Return the Pokémon's species name."""
         if not self.is_info_visible():
             raise RuntimeError(
                 "Pokémon species can only be read from the Info page."
             )
 
-        screen = self.session.screenshot()
+        max_attempts = 5
 
-        species_region = screen.crop(
-            left=38,
-            top=16,
-            right=120,
-            bottom=29,
+        for attempt in range(1, max_attempts + 1):
+            screen = self.session.screenshot()
+
+            species_region = screen.crop(
+                left=38,
+                top=16,
+                right=120,
+                bottom=29,
+            )
+
+            try:
+                return read_text(
+                    species_region,
+                )
+
+            except TextRecognitionError:
+                if attempt == max_attempts:
+                    raise
+
+                time.sleep(0.1)
+
+        raise RuntimeError(
+            "Could not determine the Pokémon's species."
         )
-
-        species_region.save(
-            "output/screenshots/species_debug.png"
-        )
-
-        return ""

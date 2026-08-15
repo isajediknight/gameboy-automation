@@ -29,11 +29,13 @@ def _pixel_category(
     dark_glyph_colors = {
         (99, 99, 99),
         (66, 66, 66),
+        (82, 82, 82),
     }
 
     light_glyph_colors = {
         (255, 255, 255),
         (222, 222, 198),
+        (222, 222, 222),
     }
 
     if pixel in dark_glyph_colors:

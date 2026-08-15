@@ -100,9 +100,15 @@ def main() -> None:
             poll_interval_seconds=0.1,
         )
 
-        print("Capturing Pokémon species region...")
+        print("Reading Pokémon species...")
 
-        summary_screen.species()
+        species = summary_screen.species()
+
+        print(f"Detected Pokémon species: {species}")
+
+        assert species == "PORYGON"
+
+        print("Pokémon species detected successfully!")
 
         print("Reading complete Pokémon summary...")
 

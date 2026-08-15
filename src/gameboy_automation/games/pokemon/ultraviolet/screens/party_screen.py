@@ -108,8 +108,8 @@ class PartyScreen:
             return PartySlot.SLOT_3
 
         slot_4_pixel = screen.pixel(
-            103,
-            58,
+            104,
+            57,
         )
 
         if (
@@ -120,8 +120,8 @@ class PartyScreen:
             return PartySlot.SLOT_4
 
         slot_5_pixel = screen.pixel(
-            103,
-            82,
+            104,
+            81,
         )
 
         if (
@@ -132,9 +132,16 @@ class PartyScreen:
             return PartySlot.SLOT_5
 
         slot_6_pixel = screen.pixel(
-            103,
-            106,
+            104,
+            105,
         )
+
+        if (
+            slot_6_pixel.red,
+            slot_6_pixel.green,
+            slot_6_pixel.blue,
+        ) == selected_border_color:
+            return PartySlot.SLOT_6
 
         if (
             slot_6_pixel.red,
@@ -201,6 +208,56 @@ class PartyScreen:
 
         return None
 
+    def _wait_for_selected_slot(
+        self,
+        max_attempts: int = 10,
+    ) -> PartySlot:
+        """Wait until the currently selected party slot can be detected."""
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return self.selected_slot()
+
+            except RuntimeError:
+                if attempt == max_attempts:
+                    raise
+
+                time.sleep(0.1)
+
+        raise RuntimeError(
+            "Could not determine the selected Pokémon party slot."
+        )
+
+    def _move_cursor(
+        self,
+        button: Button,
+        expected: PartySlot,
+        max_attempts: int = 3,
+    ) -> None:
+        """Press a direction until the expected party slot is selected."""
+        for attempt in range(1, max_attempts + 1):
+            self.session.press(
+                button,
+                duration_seconds=0.2,
+            )
+
+            try:
+                wait_until(
+                    lambda: self._is_slot_selected(expected),
+                    timeout_seconds=1.0,
+                    poll_interval_seconds=0.05,
+                    description=(
+                        f"party cursor to move to {expected.name}"
+                    ),
+                )
+
+                return
+
+            except Exception:
+                if attempt == max_attempts:
+                    raise
+
+                time.sleep(0.2)
+
     def select(
         self,
         target: PartySlot,
@@ -214,47 +271,36 @@ class PartyScreen:
                 f"party contains {party_size} Pokémon."
             )
 
-        current = self.selected_slot()
+        current = self._wait_for_selected_slot()
 
         while current.value < target.value:
-            expected = PartySlot(current.value + 1)
-
-            self.session.press(
-                Button.DOWN,
+            expected = PartySlot(
+                current.value + 1
             )
 
-            wait_until(
-                lambda: self._is_slot_selected(expected),
-                timeout_seconds=5.0,
-                poll_interval_seconds=0.05,
-                description=f"party cursor to move to {expected.name}",
+            self._move_cursor(
+                Button.DOWN,
+                expected,
             )
 
             time.sleep(0.25)
-
-            current = expected
 
             current = expected
 
         while current.value > target.value:
-            expected = PartySlot(current.value - 1)
-
-            self.session.press(
-                Button.UP,
+            expected = PartySlot(
+                current.value - 1
             )
 
-            wait_until(
-                lambda: self._is_slot_selected(expected),
-                timeout_seconds=5.0,
-                poll_interval_seconds=0.05,
-                description=f"party cursor to move to {expected.name}",
+            self._move_cursor(
+                Button.UP,
+                expected,
             )
 
             time.sleep(0.25)
 
             current = expected
 
-            current = expected
     def open_selected(self) -> PartyPokemonMenu:
         """Open the action menu for the currently selected Pokémon."""
         self.session.press(
