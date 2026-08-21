@@ -269,6 +269,7 @@ def test_select_moves_down_to_target_slot(monkeypatch):
 
     session.press.assert_called_with(
         Button.DOWN,
+        duration_seconds=0.2,
     )
 
 
@@ -304,6 +305,7 @@ def test_select_moves_up_to_target_slot(monkeypatch):
 
     session.press.assert_called_with(
         Button.UP,
+        duration_seconds=0.2,
     )
 
 
@@ -371,3 +373,77 @@ def test_party_size_returns_5():
     )
 
     assert party_screen.party_size() == 5
+
+def test_is_egg_returns_true_when_slot_contains_egg(monkeypatch):
+    session = Mock()
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    party_screen.select = Mock()
+    party_screen.open_selected = Mock()
+
+    menu = party_screen.open_selected.return_value
+
+    egg_summary = Mock()
+    egg_summary.is_visible.return_value = True
+
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.party_screen.EggSummaryScreen",
+        Mock(return_value=egg_summary),
+    )
+
+    result = party_screen.is_egg(
+        PartySlot.SLOT_2,
+    )
+
+    assert result is True
+
+    party_screen.select.assert_called_once_with(
+        PartySlot.SLOT_2,
+    )
+
+    party_screen.open_selected.assert_called_once_with()
+
+    menu.confirm.assert_called_once_with()
+
+    egg_summary.is_visible.assert_called_once_with()
+    egg_summary.close.assert_called_once_with()
+
+def test_is_egg_returns_false_when_slot_contains_pokemon(monkeypatch):
+    session = Mock()
+
+    party_screen = PartyScreen(
+        session=session,
+    )
+
+    party_screen.select = Mock()
+    party_screen.open_selected = Mock()
+
+    menu = party_screen.open_selected.return_value
+
+    egg_summary = Mock()
+    egg_summary.is_visible.return_value = False
+
+    monkeypatch.setattr(
+        "gameboy_automation.games.pokemon.ultraviolet.screens.party_screen.EggSummaryScreen",
+        Mock(return_value=egg_summary),
+    )
+
+    result = party_screen.is_egg(
+        PartySlot.SLOT_1,
+    )
+
+    assert result is False
+
+    party_screen.select.assert_called_once_with(
+        PartySlot.SLOT_1,
+    )
+
+    party_screen.open_selected.assert_called_once_with()
+
+    menu.confirm.assert_called_once_with()
+
+    egg_summary.is_visible.assert_called_once_with()
+    egg_summary.close.assert_called_once_with()

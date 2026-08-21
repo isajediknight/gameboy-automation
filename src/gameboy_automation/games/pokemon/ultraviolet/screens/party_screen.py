@@ -9,6 +9,12 @@ from gameboy_automation.emulators import Button
 from gameboy_automation.games.pokemon.ultraviolet.screens.party_pokemon_menu import (
     PartyPokemonMenu,
 )
+from gameboy_automation.games.pokemon.ultraviolet.screens.egg_summary_screen import (
+    EggSummaryScreen,
+)
+from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen import (
+    PokemonSummaryScreen,
+)
 
 PARTY_SCREEN_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
@@ -37,6 +43,79 @@ class PartyScreen:
         session: Session,
     ) -> None:
         self.session = session
+
+    def is_egg(
+        self,
+        slot: PartySlot,
+    ) -> bool:
+        """Return True when the requested party slot contains an Egg."""
+        self.select(
+            slot,
+        )
+
+        pokemon_menu = self.open_selected()
+
+        pokemon_menu.confirm()
+
+        egg_summary = EggSummaryScreen(
+            session=self.session,
+        )
+
+        pokemon_summary = PokemonSummaryScreen(
+            session=self.session,
+        )
+
+        def summary_is_visible() -> bool | None:
+            if egg_summary.is_visible():
+                return True
+
+            if pokemon_summary.is_info_visible():
+                return True
+
+            return None
+
+        wait_until(
+            summary_is_visible,
+            timeout_seconds=10.0,
+            poll_interval_seconds=0.1,
+            description="Egg or Pokémon summary screen",
+        )
+
+        is_egg = egg_summary.is_visible()
+
+        print(f"Egg detected: {is_egg}")
+
+        for press_number in range(1, 6):
+            print(f"Pressing B #{press_number}...")
+
+            self.session.press(
+                Button.B,
+                duration_seconds=0.2,
+            )
+
+            time.sleep(1.0)
+
+            party_visible = self.is_visible()
+            menu_visible = pokemon_menu.is_visible()
+
+            print(
+                f"After B #{press_number}: "
+                f"party={party_visible}, "
+                f"pokemon_menu={menu_visible}"
+            )
+
+            if party_visible:
+                print(
+                    f"Returned to party after "
+                    f"{press_number} B presses."
+                )
+
+                return is_egg
+
+        raise RuntimeError(
+            "Could not return to the party screen "
+            "after 5 B presses."
+        )
 
     def is_visible(self) -> bool:
         """Return True when the party screen is visible."""

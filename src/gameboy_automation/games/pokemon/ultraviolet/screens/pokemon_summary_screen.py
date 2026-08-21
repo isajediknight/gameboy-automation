@@ -10,11 +10,6 @@ from gameboy_automation.games.pokemon.ultraviolet.vision.number_reader import (
 from gameboy_automation.runtime.session import Session
 from gameboy_automation.services.wait import wait_until
 
-from gameboy_automation.games.pokemon.ultraviolet.vision.text_reader import (
-    TextRecognitionError,
-    read_text,
-)
-
 POKEMON_SUMMARY_INFO_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
     / "pokemon"
@@ -41,6 +36,18 @@ POKEMON_SUMMARY_MOVES_TEMPLATE_PATH = (
     / "ultraviolet"
     / "pokemon_summary_moves_signature.png"
 )
+
+POKEMON_SPECIES_TEMPLATE_DIRECTORY = (
+    Path(__file__).resolve().parents[1]
+    / "assets"
+    / "templates"
+    / "species"
+)
+
+POKEMON_SPECIES_TEMPLATE_NAMES = {
+    "nidoran_female": "NIDORAN♀",
+    "nidoran_male": "NIDORAN♂",
+}
 
 class PokemonSummaryPage(Enum):
     INFO = 1
@@ -583,29 +590,40 @@ class PokemonSummaryScreen:
                 "Pokémon species can only be read from the Info page."
             )
 
-        max_attempts = 5
+        screen = self.session.screenshot()
 
-        for attempt in range(1, max_attempts + 1):
-            screen = self.session.screenshot()
+        species_region = screen.crop(
+            left=38,
+            top=16,
+            right=120,
+            bottom=29,
+        )
 
-            species_region = screen.crop(
-                left=38,
-                top=16,
-                right=120,
-                bottom=29,
+        for template_path in sorted(
+            POKEMON_SPECIES_TEMPLATE_DIRECTORY.glob("*.png")
+        ):
+            match = species_region.find_template(
+                template_path=template_path,
             )
 
-            try:
-                return read_text(
-                    species_region,
+            if match.found:
+                template_name = template_path.stem
+
+                return POKEMON_SPECIES_TEMPLATE_NAMES.get(
+                    template_name,
+                    template_name.upper(),
                 )
-
-            except TextRecognitionError:
-                if attempt == max_attempts:
-                    raise
-
-                time.sleep(0.1)
 
         raise RuntimeError(
             "Could not determine the Pokémon's species."
+        )
+
+    def close(self) -> None:
+        """Return from the summary screen to the party screen."""
+        self.session.press(
+            Button.B,
+        )
+
+        self.session.press(
+            Button.B,
         )

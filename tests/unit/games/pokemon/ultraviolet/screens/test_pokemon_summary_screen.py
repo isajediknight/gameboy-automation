@@ -825,6 +825,7 @@ def test_read_summary_combines_info_and_stats():
     result = summary_screen.read_summary()
 
     assert result == PokemonSummary(
+        species="BEEDRILL",
         level=25,
         nature=PokemonNature.TIMID,
         stats=stats,
@@ -848,13 +849,16 @@ def test_nature_returns_timid_when_timid_template_is_found():
     session = Mock()
     screen = Mock()
     nature_region = Mock()
-    match = Mock()
-
-    match.found = True
 
     session.screenshot.return_value = screen
     screen.crop.return_value = nature_region
-    nature_region.find_template.return_value = match
+
+    def find_template_side_effect(template_path):
+        match = Mock()
+        match.found = template_path.name == "timid.png"
+        return match
+
+    nature_region.find_template.side_effect = find_template_side_effect
 
     summary = PokemonSummaryScreen(
         session=session,
@@ -875,11 +879,6 @@ def test_nature_returns_timid_when_timid_template_is_found():
         bottom=126,
     )
 
-    template_path=(
-        POKEMON_NATURE_TEMPLATE_DIRECTORY
-        / "timid.png"
-    ),
-
 
 def test_nature_requires_info_page():
     summary = PokemonSummaryScreen(
@@ -895,3 +894,18 @@ def test_nature_requires_info_page():
         match="Pokémon nature can only be read from the Info page.",
     ):
         summary.nature()
+
+def test_close_returns_to_party_screen():
+    session = Mock()
+
+    summary = PokemonSummaryScreen(
+        session=session,
+    )
+
+    summary.close()
+
+    assert session.press.call_count == 2
+
+    session.press.assert_called_with(
+        Button.B,
+    )
