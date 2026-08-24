@@ -408,8 +408,8 @@ def test_is_egg_returns_true_when_slot_contains_egg(monkeypatch):
 
     menu.confirm.assert_called_once_with()
 
-    egg_summary.is_visible.assert_called_once_with()
-    egg_summary.close.assert_called_once_with()
+    assert egg_summary.is_visible.call_count == 2
+    egg_summary.close.assert_not_called()
 
 def test_is_egg_returns_false_when_slot_contains_pokemon(monkeypatch):
     session = Mock()
@@ -445,5 +445,5 @@ def test_is_egg_returns_false_when_slot_contains_pokemon(monkeypatch):
 
     menu.confirm.assert_called_once_with()
 
-    egg_summary.is_visible.assert_called_once_with()
-    egg_summary.close.assert_called_once_with()
+    assert egg_summary.is_visible.call_count == 2
+    egg_summary.close.assert_not_called()

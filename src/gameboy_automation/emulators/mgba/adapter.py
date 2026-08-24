@@ -10,10 +10,14 @@ from gameboy_automation.emulators.base import (
 )
 from gameboy_automation.emulators.mgba.keys import (
     BUTTON_TO_VIRTUAL_KEY,
+    VK_F1,
+    VK_SHIFT,
+    VK_TAB,
 )
 from gameboy_automation.utils.windows import (
     capture_client_area,
     find_window_by_process_id,
+    send_key_combination,
     send_key_down,
     send_key_up,
 )
@@ -231,4 +235,29 @@ class MGBAEmulator(Emulator):
             virtual_key_code,
         )
 
+    def toggle_fast_forward(self) -> None:
+        """Toggle mGBA fast-forward using Shift+Tab."""
+        if not self.is_running():
+            raise RuntimeError("mGBA is not running.")
+
+        if self._window_handle is None:
+            self.wait_for_window()
+
+        send_key_combination(
+            VK_SHIFT,
+            VK_TAB,
+        )
+
+    def quick_save(self) -> None:
+        """Save the current emulator state to mGBA quick-save slot 1."""
+        if not self.is_running():
+            raise RuntimeError("mGBA is not running.")
+
+        if self._window_handle is None:
+            self.wait_for_window()
+
+        send_key_combination(
+            VK_SHIFT,
+            VK_F1,
+        )
 

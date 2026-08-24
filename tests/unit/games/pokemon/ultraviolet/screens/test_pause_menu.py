@@ -127,7 +127,10 @@ def test_select_moves_down_to_pokemon():
     )
 
     pause_menu.selected_item = Mock(
-        return_value=PauseMenuSelection.POKEDEX,
+        side_effect=[
+            PauseMenuSelection.POKEDEX,
+            PauseMenuSelection.POKEMON,
+        ],
     )
 
     pause_menu.select(
@@ -136,6 +139,7 @@ def test_select_moves_down_to_pokemon():
 
     session.press.assert_called_once_with(
         Button.DOWN,
+        duration_seconds=0.2,
     )
 
 def test_select_moves_up_to_pokemon():
@@ -146,7 +150,10 @@ def test_select_moves_up_to_pokemon():
     )
 
     pause_menu.selected_item = Mock(
-        return_value=PauseMenuSelection.BAG,
+        side_effect=[
+            PauseMenuSelection.BAG,
+            PauseMenuSelection.POKEMON,
+        ],
     )
 
     pause_menu.select(
@@ -155,6 +162,7 @@ def test_select_moves_up_to_pokemon():
 
     session.press.assert_called_once_with(
         Button.UP,
+        duration_seconds=0.2,
     )
 
 def test_select_moves_multiple_steps_up_to_pokemon():
@@ -165,7 +173,14 @@ def test_select_moves_multiple_steps_up_to_pokemon():
     )
 
     pause_menu.selected_item = Mock(
-        return_value=PauseMenuSelection.EXIT,
+        side_effect=[
+            PauseMenuSelection.EXIT,
+            PauseMenuSelection.OPTION,
+            PauseMenuSelection.SAVE,
+            PauseMenuSelection.CHARACTER,
+            PauseMenuSelection.BAG,
+            PauseMenuSelection.POKEMON,
+        ],
     )
 
     pause_menu.select(
@@ -176,6 +191,7 @@ def test_select_moves_multiple_steps_up_to_pokemon():
 
     session.press.assert_called_with(
         Button.UP,
+        duration_seconds=0.2,
     )
 
 def test_confirm_presses_a_button():

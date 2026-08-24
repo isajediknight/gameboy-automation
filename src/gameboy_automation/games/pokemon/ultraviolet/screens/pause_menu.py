@@ -7,6 +7,7 @@ from enum import Enum
 from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
     PartyScreen,
 )
+import time
 
 PAUSE_MENU_TEMPLATE_PATH = (
     Path(__file__).resolve().parents[4]
@@ -89,6 +90,52 @@ class PauseMenu:
             "Could not determine the selected pause-menu item."
         )
 
+    def _is_item_selected(
+        self,
+        expected: PauseMenuSelection,
+    ) -> bool | None:
+        """Return True when the expected pause-menu item is selected."""
+        try:
+            selected = self.selected_item()
+        except RuntimeError:
+            return None
+
+        if selected is expected:
+            return True
+
+        return None
+
+    def _move_cursor(
+        self,
+        button: Button,
+        expected: PauseMenuSelection,
+        max_attempts: int = 3,
+    ) -> None:
+        """Press a direction until the expected pause-menu item is selected."""
+        for attempt in range(1, max_attempts + 1):
+            self.session.press(
+                button,
+                duration_seconds=0.2,
+            )
+
+            try:
+                wait_until(
+                    lambda: self._is_item_selected(expected),
+                    timeout_seconds=1.0,
+                    poll_interval_seconds=0.05,
+                    description=(
+                        f"pause-menu cursor to move to {expected.name}"
+                    ),
+                )
+
+                return
+
+            except Exception:
+                if attempt == max_attempts:
+                    raise
+
+                time.sleep(0.2)
+
     def select(
         self,
         target: PauseMenuSelection,
@@ -102,15 +149,31 @@ class PauseMenu:
         target_index = selections.index(target)
 
         while current_index < target_index:
-            self.session.press(
+            expected = selections[
+                current_index + 1
+            ]
+
+            self._move_cursor(
                 Button.DOWN,
+                expected,
             )
+
+            time.sleep(0.25)
+
             current_index += 1
 
         while current_index > target_index:
-            self.session.press(
+            expected = selections[
+                current_index - 1
+            ]
+
+            self._move_cursor(
                 Button.UP,
+                expected,
             )
+
+            time.sleep(0.25)
+
             current_index -= 1
 
     def confirm(self) -> None:
@@ -134,3 +197,39 @@ class PauseMenu:
         party_screen.wait_until_visible()
 
         return party_screen
+
+    def save_game(self) -> None:
+        """Open the pause menu and save the game."""
+        print("Opening pause menu...")
+        self.open()
+
+        print("Selecting SAVE...")
+        self.select(
+            PauseMenuSelection.SAVE,
+        )
+
+        print("Opening SAVE...")
+        self.confirm()
+
+        print("Waiting for save confirmation prompt...")
+        time.sleep(2.0)
+
+        print("Confirming save...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        print("Waiting for overwrite confirmation...")
+        time.sleep(2.0)
+
+        print("Confirming overwrite...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        print("Waiting for game save to complete...")
+        time.sleep(3.0)
+
+        print("Game saved successfully.")

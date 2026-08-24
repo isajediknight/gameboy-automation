@@ -7,6 +7,10 @@ from gameboy_automation.emulators import Button
 # https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 #
 
+VK_SHIFT = 0x10
+VK_TAB = 0x09
+VK_F1 = 0x70
+
 BUTTON_TO_VIRTUAL_KEY = {
     Button.A: ord("X"),
     Button.B: ord("Z"),

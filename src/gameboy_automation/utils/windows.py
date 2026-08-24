@@ -1,6 +1,7 @@
 import ctypes
 from ctypes import wintypes
 from PIL import Image, ImageGrab
+import time
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 
@@ -70,6 +71,7 @@ user32.ClientToScreen.restype = wintypes.BOOL
 
 WM_KEYDOWN = 0x0100
 WM_KEYUP = 0x0101
+KEYEVENTF_KEYUP = 0x0002
 
 user32.PostMessageW.argtypes = [
     wintypes.HWND,
@@ -79,7 +81,6 @@ user32.PostMessageW.argtypes = [
 ]
 
 user32.PostMessageW.restype = wintypes.BOOL
-
 
 def get_window_title(window_handle: int) -> str:
     """Return the title of a Windows window."""
@@ -343,3 +344,42 @@ def send_key_up(
 
     if not result:
         raise ctypes.WinError(ctypes.get_last_error())
+
+def send_key_combination(
+        modifier_virtual_key_code: int,
+        key_virtual_key_code: int,
+    ) -> None:
+        """Send a Windows modifier + key combination."""
+        user32.keybd_event(
+            modifier_virtual_key_code,
+            0,
+            0,
+            0,
+        )
+
+        time.sleep(0.05)
+
+        user32.keybd_event(
+            key_virtual_key_code,
+            0,
+            0,
+            0,
+        )
+
+        time.sleep(0.05)
+
+        user32.keybd_event(
+            key_virtual_key_code,
+            0,
+            KEYEVENTF_KEYUP,
+            0,
+        )
+
+        time.sleep(0.05)
+
+        user32.keybd_event(
+            modifier_virtual_key_code,
+            0,
+            KEYEVENTF_KEYUP,
+            0,
+        )
