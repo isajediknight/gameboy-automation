@@ -61,6 +61,7 @@ class PauseMenu:
 
     def open(self) -> None:
         """Open the pause menu and wait until it is visible."""
+
         self.session.press(
             Button.START,
         )
@@ -200,8 +201,11 @@ class PauseMenu:
 
     def save_game(self) -> None:
         """Open the pause menu and save the game."""
-        print("Opening pause menu...")
-        self.open()
+        if not self.is_visible():
+            print("Opening pause menu...")
+            self.open()
+        else:
+            print("Pause menu is already open.")
 
         print("Selecting SAVE...")
         self.select(

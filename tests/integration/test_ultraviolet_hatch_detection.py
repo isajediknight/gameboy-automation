@@ -265,8 +265,10 @@ def main() -> None:
         print()
         print("Saving game...")
 
-        # Return from Pokémon Summary to the overworld.
-        for _ in range(3):
+        # Return from Pokémon Summary to the pause menu.
+        for press_number in range(1, 6):
+            print(f"Pressing B #{press_number}...")
+
             emulator.press(
                 Button.B,
                 duration_seconds=0.2,
@@ -274,23 +276,36 @@ def main() -> None:
 
             time.sleep(1.0)
 
-        print("Opening pause menu for save...")
+            pause_menu_visible = pause_menu.is_visible()
 
-        pause_menu = PauseMenu(
-            session=emulator,
-        )
+            print(
+                f"After B #{press_number}: "
+                f"pause_menu={pause_menu_visible}"
+            )
 
-        pause_menu.open()
+            if pause_menu_visible:
+                print("Returned to pause menu.")
+                break
+
+        else:
+            raise RuntimeError(
+                "Could not return to pause menu "
+                "after 5 B presses."
+            )
+
+        print("Saving game...")
 
         pause_menu.save_game()
 
         print("Creating quick save...")
 
+        time.sleep(10)
+
         emulator.quick_save()
 
         print("Quick save completed!")
 
-        time.sleep(50)
+        time.sleep(2)
 
     finally:
         emulator.close()
