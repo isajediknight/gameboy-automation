@@ -1,6 +1,7 @@
 from pathlib import Path
 import subprocess
 import time
+import shutil
 
 from PIL import Image
 
@@ -260,4 +261,43 @@ class MGBAEmulator(Emulator):
             VK_SHIFT,
             VK_F1,
         )
+
+    def quick_save_exists(
+        self,
+    ) -> bool:
+        if self.rom_path is None:
+            return False
+
+        return self.rom_path.with_suffix(
+            ".ss1"
+        ).is_file()
+
+    def archive_quick_save(
+        self,
+        archive_name: str,
+    ) -> Path | None:
+        """Copy the current mGBA slot-1 quicksave file if it exists."""
+        if self.rom_path is None:
+            raise RuntimeError(
+                "Cannot archive quick save because no ROM is loaded."
+            )
+
+        quick_save_path = self.rom_path.with_suffix(
+            ".ss1"
+        )
+
+        if not quick_save_path.is_file():
+            return None
+
+        archive_path = (
+            quick_save_path.parent
+            / f"{archive_name}.quick_save"
+        )
+
+        shutil.copy2(
+            quick_save_path,
+            archive_path,
+        )
+
+        return archive_path
 

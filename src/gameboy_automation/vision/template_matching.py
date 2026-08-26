@@ -105,3 +105,90 @@ def find_template(
         width=template_width,
         height=template_height,
     )
+
+def find_screen_in_reference(
+    screen: "Screen",
+    reference_path: str | Path,
+    confidence: float = 0.95,
+) -> TemplateMatch:
+    """
+    Find the current screen within a larger reference image.
+
+    Args:
+        screen:
+            Screen image to locate.
+        reference_path:
+            Path to the larger reference image.
+        confidence:
+            Minimum confidence required for a successful match.
+
+    Returns:
+        The strongest match within the reference image.
+    """
+    if not 0.0 <= confidence <= 1.0:
+        raise ValueError(
+            "confidence must be between 0.0 and 1.0."
+        )
+
+    resolved_reference_path = Path(
+        reference_path,
+    )
+
+    if not resolved_reference_path.is_file():
+        raise FileNotFoundError(
+            f"Reference image not found: "
+            f"{resolved_reference_path}"
+        )
+
+    reference_image = cv2.imread(
+        str(resolved_reference_path),
+        cv2.IMREAD_COLOR,
+    )
+
+    if reference_image is None:
+        raise RuntimeError(
+            f"OpenCV could not load reference image: "
+            f"{resolved_reference_path}"
+        )
+
+    screen_image = np.asarray(
+        screen.image.convert("RGB")
+    )
+
+    screen_image = cv2.cvtColor(
+        screen_image,
+        cv2.COLOR_RGB2BGR,
+    )
+
+    screen_height, screen_width = screen_image.shape[:2]
+    reference_height, reference_width = reference_image.shape[:2]
+
+    if (
+        screen_width > reference_width
+        or screen_height > reference_height
+    ):
+        raise ValueError(
+            "Screen dimensions cannot exceed "
+            "reference image dimensions."
+        )
+
+    match_results = cv2.matchTemplate(
+        reference_image,
+        screen_image,
+        cv2.TM_CCOEFF_NORMED,
+    )
+
+    _, maximum_confidence, _, maximum_location = cv2.minMaxLoc(
+        match_results
+    )
+
+    match_x, match_y = maximum_location
+
+    return TemplateMatch(
+        found=maximum_confidence >= confidence,
+        confidence=float(maximum_confidence),
+        x=match_x,
+        y=match_y,
+        width=screen_width,
+        height=screen_height,
+    )

@@ -328,3 +328,5 @@ roms/pokemon/ultraviolet/ultravioletv122_eevee.sav
 src/gameboy_automation/pokemon/assets/templates/ultraviolet/party_pokemon_menu_signature_BAK.png
 src/gameboy_automation/games/pokemon/ultraviolet/assets/templates/species/chding.png
 roms/pokemon/ultraviolet/ultravioletv122.ss1
+
+*.quick_save

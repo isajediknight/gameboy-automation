@@ -24,6 +24,9 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
 from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen import (
     PokemonSummaryScreen,
 )
+from gameboy_automation.games.pokemon.ultraviolet.screens.day_care_screen import (
+    DayCareScreen,
+)
 
 MOVE_SECONDS = 0.1
 POLL_INTERVAL_SECONDS = 0.1
@@ -102,7 +105,7 @@ def move_until_hatch(
 
 def find_egg_slot(
     emulator: MGBAEmulator,
-) -> PartySlot:
+) -> PartySlot | None:
     """Find and return the party slot containing the Egg."""
     print()
     print("Locating Egg in party...")
@@ -146,9 +149,111 @@ def find_egg_slot(
 
             return slot
 
-    raise RuntimeError(
-        "No Egg was found in the Pokémon party."
+    print("No Egg found in party.")
+
+    # Leave the party screen and return to the overworld.
+    emulator.press(
+        Button.B,
+        duration_seconds=0.2,
     )
+
+    time.sleep(1)
+
+    emulator.press(
+        Button.B,
+        duration_seconds=0.2,
+    )
+
+    return None
+
+def pick_up_next_egg(
+    emulator: MGBAEmulator,
+) -> None:
+    """Talk to the Day Care Man and accept the available Egg."""
+    print()
+    print("Picking up next Egg...")
+
+    print("Starting Day Care Man conversation...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    # Ah, it's you!
+    print("Advancing dialogue...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    # We were raising your POKEMON...
+    print("Advancing dialogue...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    # Your POKEMON had an EGG!
+    print("Advancing dialogue...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    # We don't know how it got there...
+    print("Advancing dialogue...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    # The YES/NO menu is delayed, just like the nickname menu.
+    print("Waiting for Egg YES/NO menu...")
+    time.sleep(5.0)
+
+    print("Accepting Egg...")
+
+    # YES is already selected.
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    # Luke received the EGG...
+    print("Advancing received-Egg dialogue...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    # Take good care of it.
+    print("Finishing Day Care Man conversation...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(2.0)
+
+    print("Closing dialogue...")
+    emulator.press(
+        Button.A,
+        duration_seconds=0.2,
+    )
+
+    print("Next Egg picked up!")
 
 def main() -> None:
     emulator = MGBAEmulator(
@@ -160,15 +265,106 @@ def main() -> None:
             emulator,
         )
 
-        hatch_screen = HatchScreen(
-            session=emulator,
-        )
+        print()
+        print("Checking for startup quick save...")
+
+        if emulator.quick_save_exists():
+            print("Quick save already exists.")
+        else:
+            print("No quick save exists. Creating one...")
+
+            emulator.quick_save()
+
+            time.sleep(1.0)
+
+            if not emulator.quick_save_exists():
+                raise RuntimeError(
+                    "Startup quick save was not created."
+                )
+
+            print("Startup quick save created successfully.")
 
         egg_slot = find_egg_slot(
             emulator,
         )
 
+        if egg_slot is None:
+            print()
+            print("No Egg in party. Picking up next Egg...")
+
+            day_care_screen = DayCareScreen(
+                session=emulator,
+            )
+
+            day_care_screen.move_to_day_care_approach()
+
+            day_care_screen.move_to_day_care_man()
+
+            pick_up_next_egg(
+                emulator,
+            )
+
+            day_care_screen.move_to_hatching_route()
+
+            egg_slot = find_egg_slot(
+                emulator,
+            )
+
+            if egg_slot is None:
+                raise RuntimeError(
+                    "No Egg found after picking up an Egg "
+                    "from the Day Care Man."
+                )
+
+            print()
+            print("Creating pre-hatch quick save with newly acquired Egg...")
+
+            emulator.quick_save()
+
+            time.sleep(1.0)
+
+            if not emulator.quick_save_exists():
+                raise RuntimeError(
+                    "Pre-hatch quick save was not created."
+                )
+
+            print("Pre-hatch quick save created successfully.")
+
+        else:
+            print()
+            print(
+                f"Egg already in party: {egg_slot.name}. "
+                "Skipping Day Care pickup."
+            )
+
+        hatch_screen = HatchScreen(
+            session=emulator,
+        )
+
         print(f"Remembering Egg location: {egg_slot.name}")
+
+        print()
+        print("Checking for pre-hatch quick save...")
+
+        if emulator.quick_save_exists():
+            print(
+                "Pre-hatch quick save already exists. "
+                "Keeping existing quick save."
+            )
+        else:
+            print("No pre-hatch quick save exists.")
+            print("Creating pre-hatch quick save...")
+
+            emulator.quick_save()
+
+            time.sleep(1.0)
+
+            if not emulator.quick_save_exists():
+                raise RuntimeError(
+                    "Pre-hatch quick save was not created."
+                )
+
+            print("Pre-hatch quick save created successfully.")
 
         print()
         print("Turning fast-forward ON...")
@@ -258,9 +454,44 @@ def main() -> None:
 
         pokemon = summary_screen.read_summary()
 
-        print()
+        stats = pokemon.stats
+
+        archive_name = (
+            f"{pokemon.species}_"
+            f"{pokemon.nature.value}_"
+            f"{stats.max_hp}_"
+            f"{stats.attack}_"
+            f"{stats.defense}_"
+            f"{stats.special_attack}_"
+            f"{stats.special_defense}_"
+            f"{stats.speed}"
+        )
+
+        print(
+            f"Archiving pre-hatch quick save as "
+            f"{archive_name}.quick_save..."
+        )
+
+        archive_path = emulator.archive_quick_save(
+            archive_name,
+        )
+
+        if archive_path is None:
+            print(
+                "No previous pre-hatch quick save exists. "
+                "Nothing to archive."
+            )
+        else:
+            print(
+                f"Archived pre-hatch quick save: "
+                f"{archive_path}"
+            )
         print("Newly hatched Pokémon:")
         print(pokemon)
+
+
+
+        time.sleep(3)
 
         print()
         print("Saving game...")
@@ -296,16 +527,6 @@ def main() -> None:
         print("Saving game...")
 
         pause_menu.save_game()
-
-        print("Creating quick save...")
-
-        time.sleep(10)
-
-        emulator.quick_save()
-
-        print("Quick save completed!")
-
-        time.sleep(2)
 
     finally:
         emulator.close()
