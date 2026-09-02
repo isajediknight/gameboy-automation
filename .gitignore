@@ -330,3 +330,4 @@ src/gameboy_automation/games/pokemon/ultraviolet/assets/templates/species/chding
 roms/pokemon/ultraviolet/ultravioletv122.ss1
 
 *.quick_save
+png_list.txt

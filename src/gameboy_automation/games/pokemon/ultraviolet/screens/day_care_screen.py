@@ -323,3 +323,49 @@ class DayCareScreen:
         )
 
         print("Returned to hatching route.")
+
+    def move_to_pokemon_center(
+        self,
+    ) -> None:
+        """Move from the Day Care hatching route into the Pokémon Center."""
+        player = self.player()
+
+        if player.on_bike:
+            print("Player is on bicycle. Dismounting...")
+
+            self.session.press(
+                Button.SELECT,
+                duration_seconds=0.2,
+            )
+
+            time.sleep(0.5)
+
+            player = self.player()
+
+            if player.on_bike:
+                raise RuntimeError(
+                    "Failed to dismount bicycle."
+                )
+
+            print("Player dismounted bicycle.")
+
+        print("Moving from Day Care route to Pokémon Center...")
+
+        movements = (
+            (Button.LEFT, 20),
+            (Button.UP, 5),
+            (Button.DOWN, 7),
+            (Button.RIGHT, 9),
+            (Button.UP, 1),
+        )
+
+        for button, count in movements:
+            for _ in range(count):
+                self.session.press(
+                    button,
+                    duration_seconds=0.2,
+                )
+
+                time.sleep(0.5)
+
+        print("Pokémon Center route completed.")
