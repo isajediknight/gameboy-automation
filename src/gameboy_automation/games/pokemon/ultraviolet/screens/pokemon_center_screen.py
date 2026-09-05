@@ -3,7 +3,9 @@ import time
 
 from gameboy_automation.emulators import Button
 from gameboy_automation.runtime.session import Session
-
+from gameboy_automation.games.pokemon.ultraviolet.screens.pc_screen import (
+    PCScreen,
+)
 
 POKEMON_CENTER_TEMPLATE_DIRECTORY = (
     Path(__file__).resolve().parents[1]
@@ -135,3 +137,30 @@ class PokemonCenterScreen:
                 time.sleep(0.5)
 
         print("Exited Pokémon Center.")
+
+    def deposit_all_except_first(
+        self,
+    ) -> None:
+        """Deposit party slots 2 through 6 and return to the Pokémon Center exit."""
+        print("Moving to PC to deposit Pokémon...")
+
+        self.move_to_pc()
+
+        time.sleep(3.0)
+
+        pc_screen = PCScreen(
+            session=self.session,
+        )
+
+        pc_screen.open_deposit_party()
+
+        pc_screen.deposit_all_except_first()
+
+        pc_screen.exit_to_overworld()
+
+        self.move_to_exit()
+
+        print(
+            "Pokémon deposited and Pokémon Center "
+            "exit reached."
+        )

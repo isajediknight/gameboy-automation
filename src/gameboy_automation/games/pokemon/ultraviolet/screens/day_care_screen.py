@@ -414,3 +414,149 @@ class DayCareScreen:
                 time.sleep(0.5)
 
         print("Returned to Day Care hatching route.")
+
+    def pick_up_next_egg(
+        self,
+    ) -> None:
+        """Talk to the Day Care Man and accept the available Egg."""
+        print()
+        print("Picking up next Egg...")
+
+        print("Starting Day Care Man conversation...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        # Ah, it's you!
+        print("Advancing dialogue...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        # We were raising your POKEMON...
+        print("Advancing dialogue...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        # Your POKEMON had an EGG!
+        print("Advancing dialogue...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        # We don't know how it got there...
+        print("Advancing dialogue...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        print("Waiting for Egg YES/NO menu...")
+        time.sleep(5.0)
+
+        print("Accepting Egg...")
+
+        # YES is already selected.
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        # Received the EGG...
+        print("Advancing received-Egg dialogue...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        # Take good care of it.
+        print("Finishing Day Care Man conversation...")
+        self.session.press(
+            Button.A,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(2.0)
+
+        print("Closing remaining dialogue/menu...")
+        self.session.press(
+            Button.B,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        print("Next Egg picked up!")
+
+    def ensure_on_bike(
+        self,
+    ) -> None:
+        """Ensure the player is riding the bicycle."""
+        print()
+        print("Checking bicycle state...")
+
+        player = self.player()
+
+        if player.on_bike:
+            print("Player is already on bicycle.")
+            return
+
+        print("Player is on foot. Mounting bicycle...")
+
+        self.session.press(
+            Button.SELECT,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        player = self.player()
+
+        if not player.on_bike:
+            raise RuntimeError(
+                "Failed to mount bicycle."
+            )
+
+        print("Player mounted bicycle successfully.")
+
+    def pick_up_egg_and_return_to_hatching_route(
+        self,
+    ) -> None:
+        """Pick up the available Egg and return to the hatching route."""
+        print()
+        print("Picking up next Egg...")
+
+        self.move_to_day_care_approach()
+
+        self.move_to_day_care_man()
+
+        self.pick_up_next_egg()
+
+        print()
+        print("Returning to Day Care hatching route...")
+
+        self.move_to_hatching_route()
+
+        self.ensure_on_bike()
+
+        print(
+            "Egg picked up and player returned "
+            "to the hatching route."
+        )

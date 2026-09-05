@@ -107,6 +107,20 @@ class PokemonSummary:
     nature: PokemonNature
     stats: PokemonStats
 
+    @property
+    def archive_name(self) -> str:
+        """Return the filename-safe name used to archive this Pokémon."""
+        return (
+            f"{self.species}_"
+            f"{self.nature.value}_"
+            f"{self.stats.max_hp}_"
+            f"{self.stats.attack}_"
+            f"{self.stats.defense}_"
+            f"{self.stats.special_attack}_"
+            f"{self.stats.special_defense}_"
+            f"{self.stats.speed}"
+        )
+
 
 POKEMON_NATURE_TEMPLATE_DIRECTORY = (
     Path(__file__).resolve().parents[1]

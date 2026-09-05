@@ -262,6 +262,22 @@ class MGBAEmulator(Emulator):
             VK_F1,
         )
 
+    def create_quick_save(
+        self,
+        wait_seconds: float = 1.0,
+    ) -> None:
+        """Create a quick save and verify that the save file exists."""
+        self.quick_save()
+
+        time.sleep(
+            wait_seconds,
+        )
+
+        if not self.quick_save_exists():
+            raise RuntimeError(
+                "Quick save was not created."
+            )
+
     def quick_save_exists(
         self,
     ) -> bool:

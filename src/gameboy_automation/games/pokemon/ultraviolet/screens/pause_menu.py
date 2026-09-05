@@ -199,6 +199,41 @@ class PauseMenu:
 
         return party_screen
 
+    def return_to_menu(
+        self,
+        max_presses: int = 5,
+    ) -> None:
+        """Press B until the pause menu is visible."""
+        if self.is_visible():
+            print("Pause menu is already visible.")
+            return
+
+        for press_number in range(1, max_presses + 1):
+            print(f"Pressing B #{press_number}...")
+
+            self.session.press(
+                Button.B,
+                duration_seconds=0.2,
+            )
+
+            time.sleep(1.0)
+
+            pause_menu_visible = self.is_visible()
+
+            print(
+                f"After B #{press_number}: "
+                f"pause_menu={pause_menu_visible}"
+            )
+
+            if pause_menu_visible:
+                print("Returned to pause menu.")
+                return
+
+        raise RuntimeError(
+            "Could not return to pause menu "
+            f"after {max_presses} B presses."
+        )
+
     def save_game(self) -> None:
         """Open the pause menu and save the game."""
         if not self.is_visible():

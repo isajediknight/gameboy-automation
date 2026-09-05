@@ -235,6 +235,12 @@ class PartyScreen:
 
     def party_size(self) -> int:
         """Return the number of Pokémon currently in the party."""
+        self.wait_until_visible()
+
+        # The party screen signature can become visible slightly before
+        # the individual party slots have finished rendering.
+        time.sleep(0.5)
+
         screen = self.session.screenshot()
 
         empty_slot_color = (
@@ -271,6 +277,32 @@ class PartyScreen:
             party_size += 1
 
         return party_size
+
+    def find_egg_slot(
+        self,
+    ) -> PartySlot | None:
+        """Return the party slot containing an Egg, if present."""
+        party_size = self.party_size()
+
+        print(f"Party contains {party_size} occupied slots.")
+
+        for slot_number in range(1, party_size + 1):
+            slot = PartySlot(
+                slot_number,
+            )
+
+            print(f"Checking {slot.name}...")
+
+            if self.is_egg(
+                slot,
+            ):
+                print(f"Egg found in {slot.name}!")
+
+                return slot
+
+        print("No Egg found in party.")
+
+        return None
 
     def _is_slot_selected(
         self,
@@ -393,3 +425,43 @@ class PartyScreen:
         menu.wait_until_visible()
 
         return menu
+
+    def open_summary(
+        self,
+        slot: PartySlot,
+    ) -> PokemonSummaryScreen:
+        """Open the Pokémon summary screen for the requested party slot."""
+        self.select(
+            slot,
+        )
+
+        pokemon_menu = self.open_selected()
+
+        pokemon_menu.confirm()
+
+        summary_screen = PokemonSummaryScreen(
+            session=self.session,
+        )
+
+        summary_screen.wait_until_info_visible(
+            timeout_seconds=10.0,
+            poll_interval_seconds=0.1,
+        )
+
+        return summary_screen
+
+    def exit_to_overworld(
+        self,
+    ) -> None:
+        """Exit the party screen and return to the overworld."""
+        self.session.press(
+            Button.B,
+            duration_seconds=0.2,
+        )
+
+        time.sleep(1.0)
+
+        self.session.press(
+            Button.B,
+            duration_seconds=0.2,
+        )

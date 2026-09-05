@@ -21,21 +21,14 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.pause_menu import (
 from gameboy_automation.games.pokemon.ultraviolet.screens.party_screen import (
     PartySlot,
 )
-from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen import (
-    PokemonSummaryScreen,
-)
 from gameboy_automation.games.pokemon.ultraviolet.screens.day_care_screen import (
     DayCareScreen,
 )
 from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_center_screen import (
     PokemonCenterScreen,
 )
-from gameboy_automation.games.pokemon.ultraviolet.screens.pc_screen import (
-    PCScreen,
-)
 
 MOVE_SECONDS = 0.1
-POLL_INTERVAL_SECONDS = 0.1
 
 
 def load_game(emulator: MGBAEmulator) -> UltraVioletGame:
@@ -74,41 +67,6 @@ def load_game(emulator: MGBAEmulator) -> UltraVioletGame:
 
     return game
 
-
-def move_until_hatch(
-    emulator: MGBAEmulator,
-    hatch_screen: HatchScreen,
-    button: Button,
-    duration_seconds: float,
-) -> bool:
-    print(
-        f"Holding {button.name} for up to "
-        f"{duration_seconds:.1f} seconds..."
-    )
-
-    emulator.key_down(
-        button,
-    )
-
-    try:
-        deadline = time.monotonic() + duration_seconds
-
-        while time.monotonic() < deadline:
-            if hatch_screen.is_visible():
-                print("Hatch sequence detected!")
-                return True
-
-            time.sleep(
-                POLL_INTERVAL_SECONDS,
-            )
-
-        return False
-
-    finally:
-        emulator.key_up(
-            button,
-        )
-
 def find_egg_slot(
     emulator: MGBAEmulator,
 ) -> PartySlot | None:
@@ -124,210 +82,11 @@ def find_egg_slot(
 
     party_screen = pause_menu.open_party()
 
-    party_size = party_screen.party_size()
+    egg_slot = party_screen.find_egg_slot()
 
-    print(f"Party contains {party_size} occupied slots.")
+    party_screen.exit_to_overworld()
 
-    for slot_number in range(1, party_size + 1):
-        slot = PartySlot(
-            slot_number,
-        )
-
-        print(f"Checking {slot.name}...")
-
-        if party_screen.is_egg(
-            slot,
-        ):
-            print(f"Egg found in {slot.name}!")
-
-            # Leave the party screen and return to the overworld.
-            emulator.press(
-                Button.B,
-                duration_seconds=0.2,
-            )
-
-            time.sleep(1)
-
-            emulator.press(
-                Button.B,
-                duration_seconds=0.2,
-            )
-
-            return slot
-
-    print("No Egg found in party.")
-
-    # Leave the party screen and return to the overworld.
-    emulator.press(
-        Button.B,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1)
-
-    emulator.press(
-        Button.B,
-        duration_seconds=0.2,
-    )
-
-    return None
-
-def get_party_size(
-    emulator: MGBAEmulator,
-) -> int:
-    """Return the number of occupied party slots."""
-    print()
-    print("Checking party size...")
-
-    pause_menu = PauseMenu(
-        session=emulator,
-    )
-
-    pause_menu.open()
-
-    party_screen = pause_menu.open_party()
-
-    party_size = party_screen.party_size()
-
-    print(f"Party contains {party_size} occupied slots.")
-
-    # Return to overworld.
-    emulator.press(
-        Button.B,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    emulator.press(
-        Button.B,
-        duration_seconds=0.2,
-    )
-
-    return party_size
-
-def pick_up_next_egg(
-    emulator: MGBAEmulator,
-) -> None:
-    """Talk to the Day Care Man and accept the available Egg."""
-    print()
-    print("Picking up next Egg...")
-
-    print("Starting Day Care Man conversation...")
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    # Ah, it's you!
-    print("Advancing dialogue...")
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    # We were raising your POKEMON...
-    print("Advancing dialogue...")
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    # Your POKEMON had an EGG!
-    print("Advancing dialogue...")
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    # We don't know how it got there...
-    print("Advancing dialogue...")
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    # The YES/NO menu is delayed, just like the nickname menu.
-    print("Waiting for Egg YES/NO menu...")
-    time.sleep(5.0)
-
-    print("Accepting Egg...")
-
-    # YES is already selected.
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    # Luke received the EGG...
-    print("Advancing received-Egg dialogue...")
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    # Take good care of it.
-    print("Finishing Day Care Man conversation...")
-    emulator.press(
-        Button.A,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(2.0)
-
-    print("Closing remaining dialogue/menu...")
-    emulator.press(
-        Button.B,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    print("Next Egg picked up!")
-
-def ensure_on_bike(
-    emulator: MGBAEmulator,
-    day_care_screen: DayCareScreen,
-) -> None:
-    """Ensure the player is riding the bicycle."""
-    print()
-    print("Checking bicycle state...")
-
-    player = day_care_screen.player()
-
-    if player.on_bike:
-        print("Player is already on bicycle.")
-        return
-
-    print("Player is on foot. Mounting bicycle...")
-
-    emulator.press(
-        Button.SELECT,
-        duration_seconds=0.2,
-    )
-
-    time.sleep(1.0)
-
-    player = day_care_screen.player()
-
-    if not player.on_bike:
-        raise RuntimeError(
-            "Failed to mount bicycle."
-        )
-
-    print("Player mounted bicycle successfully.")
+    return egg_slot
 
 def main() -> None:
     emulator = MGBAEmulator(
@@ -347,14 +106,7 @@ def main() -> None:
         else:
             print("No quick save exists. Creating one...")
 
-            emulator.quick_save()
-
-            time.sleep(1.0)
-
-            if not emulator.quick_save_exists():
-                raise RuntimeError(
-                    "Startup quick save was not created."
-                )
+            emulator.create_quick_save()
 
             print("Startup quick save created successfully.")
 
@@ -370,9 +122,22 @@ def main() -> None:
                 session=emulator,
             )
 
-            party_size = get_party_size(
-                emulator,
+            print()
+            print("Checking party size...")
+
+            pause_menu = PauseMenu(
+                session=emulator,
             )
+
+            pause_menu.open()
+
+            party_screen = pause_menu.open_party()
+
+            party_size = party_screen.party_size()
+
+            print(f"Party contains {party_size} occupied slots.")
+
+            party_screen.exit_to_overworld()
 
             if party_size == 6:
                 print()
@@ -385,25 +150,12 @@ def main() -> None:
                     session=emulator,
                 )
 
-                pc_screen = PCScreen(
-                    session=emulator,
-                )
-
                 day_care_screen.move_to_pokemon_center()
 
                 # Allow the Pokémon Center map transition to settle.
                 time.sleep(3.0)
 
-                pokemon_center_screen.move_to_pc()
-                time.sleep(3.0)
-
-                pc_screen.open_deposit_party()
-
-                pc_screen.deposit_all_except_first()
-
-                pc_screen.exit_to_overworld()
-
-                pokemon_center_screen.move_to_exit()
+                pokemon_center_screen.deposit_all_except_first()
 
                 # Allow the exterior map transition to settle.
                 time.sleep(3.0)
@@ -416,26 +168,7 @@ def main() -> None:
                     "party space."
                 )
 
-            print()
-            print("Picking up next Egg...")
-
-            day_care_screen.move_to_day_care_approach()
-
-            day_care_screen.move_to_day_care_man()
-
-            pick_up_next_egg(
-                emulator,
-            )
-
-            print()
-            print("Returning to Day Care hatching route...")
-
-            day_care_screen.move_to_hatching_route()
-
-            ensure_on_bike(
-                emulator,
-                day_care_screen,
-            )
+            day_care_screen.pick_up_egg_and_return_to_hatching_route()
 
             egg_slot = find_egg_slot(
                 emulator,
@@ -450,14 +183,7 @@ def main() -> None:
             print()
             print("Creating pre-hatch quick save with newly acquired Egg...")
 
-            emulator.quick_save()
-
-            time.sleep(1.0)
-
-            if not emulator.quick_save_exists():
-                raise RuntimeError(
-                    "Pre-hatch quick save was not created."
-                )
+            emulator.create_quick_save()
 
             print("Pre-hatch quick save created successfully.")
 
@@ -486,14 +212,7 @@ def main() -> None:
             print("No pre-hatch quick save exists.")
             print("Creating pre-hatch quick save...")
 
-            emulator.quick_save()
-
-            time.sleep(1.0)
-
-            if not emulator.quick_save_exists():
-                raise RuntimeError(
-                    "Pre-hatch quick save was not created."
-                )
+            emulator.create_quick_save()
 
             print("Pre-hatch quick save created successfully.")
 
@@ -501,25 +220,9 @@ def main() -> None:
         print("Turning fast-forward ON...")
         emulator.toggle_fast_forward()
 
-        hatch_detected = False
-
-        while not hatch_detected:
-            hatch_detected = move_until_hatch(
-                emulator,
-                hatch_screen,
-                Button.RIGHT,
-                MOVE_SECONDS,
-            )
-
-            if hatch_detected:
-                break
-
-            hatch_detected = move_until_hatch(
-                emulator,
-                hatch_screen,
-                Button.LEFT,
-                MOVE_SECONDS,
-            )
+        hatch_screen.wait_for_hatch(
+            MOVE_SECONDS,
+        )
 
         print("Turning fast-forward OFF...")
         emulator.toggle_fast_forward()
@@ -558,45 +261,20 @@ def main() -> None:
 
         hatched_slot = egg_slot
 
-        print(f"Selecting newly hatched Pokémon in {hatched_slot.name}...")
+        print(
+            f"Opening newly hatched Pokémon summary "
+            f"in {hatched_slot.name}..."
+        )
 
-        party_screen.select(
+        summary_screen = party_screen.open_summary(
             hatched_slot,
-        )
-
-        print("Opening selected Pokémon action menu...")
-
-        pokemon_menu = party_screen.open_selected()
-
-        print("Opening Pokémon Summary...")
-
-        pokemon_menu.confirm()
-
-        summary_screen = PokemonSummaryScreen(
-            session=emulator,
-        )
-
-        summary_screen.wait_until_info_visible(
-            timeout_seconds=10.0,
-            poll_interval_seconds=0.1,
         )
 
         print("Reading newly hatched Pokémon summary...")
 
         pokemon = summary_screen.read_summary()
 
-        stats = pokemon.stats
-
-        archive_name = (
-            f"{pokemon.species}_"
-            f"{pokemon.nature.value}_"
-            f"{stats.max_hp}_"
-            f"{stats.attack}_"
-            f"{stats.defense}_"
-            f"{stats.special_attack}_"
-            f"{stats.special_defense}_"
-            f"{stats.speed}"
-        )
+        archive_name = pokemon.archive_name
 
         print(
             f"Archiving pre-hatch quick save as "
@@ -625,35 +303,9 @@ def main() -> None:
         time.sleep(3)
 
         print()
-        print("Saving game...")
+        print("Returning to pause menu...")
 
-        # Return from Pokémon Summary to the pause menu.
-        for press_number in range(1, 6):
-            print(f"Pressing B #{press_number}...")
-
-            emulator.press(
-                Button.B,
-                duration_seconds=0.2,
-            )
-
-            time.sleep(1.0)
-
-            pause_menu_visible = pause_menu.is_visible()
-
-            print(
-                f"After B #{press_number}: "
-                f"pause_menu={pause_menu_visible}"
-            )
-
-            if pause_menu_visible:
-                print("Returned to pause menu.")
-                break
-
-        else:
-            raise RuntimeError(
-                "Could not return to pause menu "
-                "after 5 B presses."
-            )
+        pause_menu.return_to_menu()
 
         print("Saving game...")
 

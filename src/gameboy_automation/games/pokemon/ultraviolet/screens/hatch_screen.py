@@ -32,6 +32,8 @@ HATCH_NICKNAME_TEMPLATE_PATH = (
     / "nickname.png"
 )
 
+POLL_INTERVAL_SECONDS = 0.1
+
 class HatchScreen:
     """Represents the start of the Pokémon Ultra Violet hatch sequence."""
 
@@ -51,6 +53,61 @@ class HatchScreen:
 
         return match.found
 
+    def move_until_hatch(
+        self,
+        button: Button,
+        duration_seconds: float,
+    ) -> bool:
+        """Move in one direction until the hatch sequence starts or time expires."""
+        print(
+            f"Holding {button.name} for up to "
+            f"{duration_seconds:.1f} seconds..."
+        )
+
+        self.session.key_down(
+            button,
+        )
+
+        try:
+            deadline = time.monotonic() + duration_seconds
+
+            while time.monotonic() < deadline:
+                if self.is_visible():
+                    print("Hatch sequence detected!")
+                    return True
+
+                time.sleep(
+                    POLL_INTERVAL_SECONDS,
+                )
+
+            return False
+
+        finally:
+            self.session.key_up(
+                button,
+            )
+    
+    def wait_for_hatch(
+        self,
+        move_seconds: float,
+    ) -> None:
+        """Move back and forth until the hatch sequence begins."""
+        hatch_detected = False
+
+        while not hatch_detected:
+            hatch_detected = self.move_until_hatch(
+                Button.RIGHT,
+                move_seconds,
+            )
+
+            if hatch_detected:
+                return
+
+            hatch_detected = self.move_until_hatch(
+                Button.LEFT,
+                move_seconds,
+            )
+    
     def is_hatched_visible(self) -> bool:
         """Return True when the hatch-complete dialogue is visible."""
         screen = self.session.screenshot()
