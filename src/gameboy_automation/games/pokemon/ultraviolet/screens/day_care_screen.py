@@ -78,15 +78,36 @@ class DayCareScreen:
         """Locate the Day Care Man on screen."""
         screen = self.session.screenshot()
 
-        for template_path in (
-            DAY_CARE_MAN_TEMPLATE_PATH,
-            DAY_CARE_MAN_OCCLUDED_TEMPLATE_PATH,
-        ):
+        matches = (
+            (
+                DAY_CARE_MAN_TEMPLATE_PATH,
+                0.95,
+            ),
+            (
+                DAY_CARE_MAN_OCCLUDED_TEMPLATE_PATH,
+                0.80,
+            ),
+        )
+
+        for template_path, confidence in matches:
             match = screen.find_template(
                 template_path=template_path,
+                confidence=confidence,
+            )
+
+            print(
+                f"Day Care Man template "
+                f"{template_path.name}: "
+                f"confidence={match.confidence:.4f}, "
+                f"required={confidence:.2f}"
             )
 
             if match.found:
+                print(
+                    f"Day Care Man detected using "
+                    f"{template_path.name}."
+                )
+
                 return DayCareManState(
                     x=match.x,
                     y=match.y,
@@ -369,3 +390,27 @@ class DayCareScreen:
                 time.sleep(0.5)
 
         print("Pokémon Center route completed.")
+
+    def move_from_pokemon_center(
+        self,
+    ) -> None:
+        """Move from outside the Pokémon Center back to the Day Care hatching route."""
+        print("Moving from Pokémon Center back to Day Care route...")
+
+        movements = (
+            (Button.LEFT, 11),
+            (Button.UP, 9),
+            (Button.DOWN, 2),
+            (Button.RIGHT, 6),
+        )
+
+        for button, count in movements:
+            for _ in range(count):
+                self.session.press(
+                    button,
+                    duration_seconds=0.2,
+                )
+
+                time.sleep(0.5)
+
+        print("Returned to Day Care hatching route.")

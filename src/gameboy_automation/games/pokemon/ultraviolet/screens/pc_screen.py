@@ -319,3 +319,17 @@ class PCScreen:
             "Finished depositing SLOT_6 through SLOT_2. "
             "SLOT_1 remains in the party."
         )
+
+    def exit_to_overworld(
+    self,
+    ) -> None:
+        """Exit the PC menus and return to normal player control."""
+        for _ in range(8):
+            self.session.press(
+                Button.B,
+                duration_seconds=0.2,
+            )
+
+            time.sleep(0.5)
+
+        print("Exited PC menus and returned to overworld.")

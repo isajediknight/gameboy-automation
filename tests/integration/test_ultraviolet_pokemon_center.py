@@ -150,6 +150,30 @@ def main() -> None:
             "completed successfully!"
         )
 
+        print()
+        print("Exiting PC menus...")
+
+        pc_screen.exit_to_overworld()
+
+        print()
+        print("Leaving Pokémon Center...")
+
+        pokemon_center.move_to_exit()
+
+        print()
+        print("Pokémon Center exit route completed successfully!")
+
+        print()
+        print("Returning to Day Care hatching route...")
+
+        day_care.move_from_pokemon_center()
+
+        print()
+        print("Returned to Day Care hatching route successfully!")
+
+        time.sleep(10)
+
+
     finally:
         emulator.close()
 

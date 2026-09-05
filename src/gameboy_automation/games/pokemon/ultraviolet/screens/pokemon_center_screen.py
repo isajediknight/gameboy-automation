@@ -113,3 +113,25 @@ class PokemonCenterScreen:
             raise RuntimeError(
                 "Failed to reach the Pokémon Center PC."
             )
+
+    def move_to_exit(
+        self,
+    ) -> None:
+        """Move from the PC to the Pokémon Center exit."""
+        movements = (
+            (Button.DOWN, 2),
+            (Button.RIGHT, 5),
+            (Button.LEFT, 7),
+            (Button.DOWN, 6),
+        )
+
+        for button, count in movements:
+            for _ in range(count):
+                self.session.press(
+                    button,
+                    duration_seconds=0.2,
+                )
+
+                time.sleep(0.5)
+
+        print("Exited Pokémon Center.")

@@ -27,6 +27,12 @@ from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_summary_screen
 from gameboy_automation.games.pokemon.ultraviolet.screens.day_care_screen import (
     DayCareScreen,
 )
+from gameboy_automation.games.pokemon.ultraviolet.screens.pokemon_center_screen import (
+    PokemonCenterScreen,
+)
+from gameboy_automation.games.pokemon.ultraviolet.screens.pc_screen import (
+    PCScreen,
+)
 
 MOVE_SECONDS = 0.1
 POLL_INTERVAL_SECONDS = 0.1
@@ -166,6 +172,40 @@ def find_egg_slot(
 
     return None
 
+def get_party_size(
+    emulator: MGBAEmulator,
+) -> int:
+    """Return the number of occupied party slots."""
+    print()
+    print("Checking party size...")
+
+    pause_menu = PauseMenu(
+        session=emulator,
+    )
+
+    pause_menu.open()
+
+    party_screen = pause_menu.open_party()
+
+    party_size = party_screen.party_size()
+
+    print(f"Party contains {party_size} occupied slots.")
+
+    # Return to overworld.
+    emulator.press(
+        Button.B,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    emulator.press(
+        Button.B,
+        duration_seconds=0.2,
+    )
+
+    return party_size
+
 def pick_up_next_egg(
     emulator: MGBAEmulator,
 ) -> None:
@@ -247,13 +287,47 @@ def pick_up_next_egg(
 
     time.sleep(2.0)
 
-    print("Closing dialogue...")
+    print("Closing remaining dialogue/menu...")
     emulator.press(
-        Button.A,
+        Button.B,
         duration_seconds=0.2,
     )
 
+    time.sleep(1.0)
+
     print("Next Egg picked up!")
+
+def ensure_on_bike(
+    emulator: MGBAEmulator,
+    day_care_screen: DayCareScreen,
+) -> None:
+    """Ensure the player is riding the bicycle."""
+    print()
+    print("Checking bicycle state...")
+
+    player = day_care_screen.player()
+
+    if player.on_bike:
+        print("Player is already on bicycle.")
+        return
+
+    print("Player is on foot. Mounting bicycle...")
+
+    emulator.press(
+        Button.SELECT,
+        duration_seconds=0.2,
+    )
+
+    time.sleep(1.0)
+
+    player = day_care_screen.player()
+
+    if not player.on_bike:
+        raise RuntimeError(
+            "Failed to mount bicycle."
+        )
+
+    print("Player mounted bicycle successfully.")
 
 def main() -> None:
     emulator = MGBAEmulator(
@@ -290,11 +364,60 @@ def main() -> None:
 
         if egg_slot is None:
             print()
-            print("No Egg in party. Picking up next Egg...")
+            print("No Egg in party.")
 
             day_care_screen = DayCareScreen(
                 session=emulator,
             )
+
+            party_size = get_party_size(
+                emulator,
+            )
+
+            if party_size == 6:
+                print()
+                print(
+                    "Party is full. Depositing Pokémon "
+                    "before picking up Egg..."
+                )
+
+                pokemon_center_screen = PokemonCenterScreen(
+                    session=emulator,
+                )
+
+                pc_screen = PCScreen(
+                    session=emulator,
+                )
+
+                day_care_screen.move_to_pokemon_center()
+
+                # Allow the Pokémon Center map transition to settle.
+                time.sleep(3.0)
+
+                pokemon_center_screen.move_to_pc()
+                time.sleep(3.0)
+
+                pc_screen.open_deposit_party()
+
+                pc_screen.deposit_all_except_first()
+
+                pc_screen.exit_to_overworld()
+
+                pokemon_center_screen.move_to_exit()
+
+                # Allow the exterior map transition to settle.
+                time.sleep(3.0)
+
+                day_care_screen.move_from_pokemon_center()
+
+                print()
+                print(
+                    "Returned to Day Care after clearing "
+                    "party space."
+                )
+
+            print()
+            print("Picking up next Egg...")
 
             day_care_screen.move_to_day_care_approach()
 
@@ -304,7 +427,15 @@ def main() -> None:
                 emulator,
             )
 
+            print()
+            print("Returning to Day Care hatching route...")
+
             day_care_screen.move_to_hatching_route()
+
+            ensure_on_bike(
+                emulator,
+                day_care_screen,
+            )
 
             egg_slot = find_egg_slot(
                 emulator,
